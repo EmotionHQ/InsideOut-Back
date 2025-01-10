@@ -14,13 +14,10 @@ public class JwtUtil {
 
     /**
      * 사용자 이름을 기반으로 JWT 생성
-     *
-     * @param username 사용자 이름
-     * @return 생성된 JWT 토큰
      */
-    public String generateToken(String username) {
+    public String generateToken(String userId) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
@@ -29,11 +26,8 @@ public class JwtUtil {
 
     /**
      * JWT에서 사용자 이름 추출
-     *
-     * @param token JWT 토큰
-     * @return 사용자 이름
      */
-    public String extractUsername(String token) {
+    public String extractUserId(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
                 .build()
@@ -44,9 +38,6 @@ public class JwtUtil {
 
     /**
      * JWT 토큰의 유효성을 검증
-     *
-     * @param token JWT 토큰
-     * @return 유효 여부
      */
     public boolean validateToken(String token) {
         try {

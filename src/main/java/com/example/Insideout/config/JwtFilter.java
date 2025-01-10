@@ -35,8 +35,8 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
             if (jwtUtil.validateToken(token)) {
-                String username = jwtUtil.extractUsername(token);
-                UserDetails userDetails = userService.loadUserByUsername(username);
+                String userId = jwtUtil.extractUserId(token);
+                UserDetails userDetails = userService.loadUserByUsername(userId);
                 SecurityContextHolder.getContext().setAuthentication(
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
                 );
@@ -44,5 +44,12 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // 필터를 적용하지 않을 경로
+        return path.equals("/api/users/register") || path.equals("/api/auth/login");
     }
 }

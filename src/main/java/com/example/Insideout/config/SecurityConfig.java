@@ -27,7 +27,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/users/register").permitAll()
                         .requestMatchers("/api/**").permitAll()         // 특정 경로 인증 없이 허용
                         .anyRequest().authenticated()
                 )

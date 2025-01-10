@@ -35,10 +35,10 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest authRequest) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(authRequest.getUserId(), authRequest.getPassword())
         );
 
-        UserDetails userDetails = userService.loadUserByUsername(authRequest.getUsername());
+        UserDetails userDetails = userService.loadUserByUsername(authRequest.getUserId());
         String jwt = jwtUtil.generateToken(userDetails.getUsername());
 
         return new AuthResponse(jwt);
