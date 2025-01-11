@@ -3,14 +3,32 @@ package com.example.Insideout.service;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.annotation.PostConstruct;
+import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
+import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "secret_key"; // JWT 서명용 키
+    @Value("${jwt.secret}") // application.properties에서 Secret Key 가져오기
+    private String rawSecretKey;
+
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10시간
+    private Key secretKey;
+
+    /**
+     * Secret Key 초기화
+     */
+    @PostConstruct
+    public void init() {
+        // Base64 인코딩된 Secret Key 생성 및 Key 객체 변환
+        byte[] decodedKey = Base64.getEncoder().encode(rawSecretKey.getBytes());
+        this.secretKey = new SecretKeySpec(decodedKey, SignatureAlgorithm.HS256.getJcaName());
+    }
 
     /**
      * 사용자 이름을 기반으로 JWT 생성
@@ -20,7 +38,7 @@ public class JwtUtil {
                 .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -29,7 +47,7 @@ public class JwtUtil {
      */
     public String extractUserId(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
@@ -42,7 +60,7 @@ public class JwtUtil {
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)
+                    .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token);
             return true;
