@@ -4,6 +4,7 @@ import com.example.Insideout.dto.AuthRequest;
 import com.example.Insideout.dto.AuthResponse;
 import com.example.Insideout.service.JwtUtil;
 import com.example.Insideout.service.UserService;
+import com.example.Insideout.entity.User;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,9 +39,15 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(authRequest.getUserId(), authRequest.getPassword())
         );
 
-        UserDetails userDetails = userService.loadUserByUsername(authRequest.getUserId());
-        String jwt = jwtUtil.generateToken(userDetails.getUsername());
+        User user = userService.findByUserId(authRequest.getUserId());
+        String jwt = jwtUtil.generateToken(user.getUserId());
 
-        return new AuthResponse(jwt);
+        return new AuthResponse(
+            "로그인 성공",
+            user.getUserId(),
+            user.getName(),
+            jwt,
+            user.getRole().name()
+        );
     }
 }
