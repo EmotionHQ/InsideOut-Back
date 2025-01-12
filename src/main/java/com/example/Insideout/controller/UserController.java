@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -22,12 +24,15 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserDto userDto) {
         try {
             User savedUser = userService.registerUser(userDto);
             return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(
+                Map.of("error", e.getMessage()),
+                HttpStatus.BAD_REQUEST
+            );
         }
     }
 }
