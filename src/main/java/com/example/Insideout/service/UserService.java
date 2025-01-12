@@ -68,4 +68,9 @@ public class UserService implements UserDetailsService {
                 .authorities(user.getRole().name())
                 .build();
     }
+
+    public User findByUserId(String userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+    }
 }
