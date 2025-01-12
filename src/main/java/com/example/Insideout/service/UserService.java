@@ -22,19 +22,36 @@ public class UserService implements UserDetailsService {
     }
 
     public User registerUser(UserDto userDto) {
-        User user = new User();
+        try {
+            if (userRepository.findById(userDto.getUserId()).isPresent()) {
+                throw new RuntimeException("이미 존재하는 사용자 ID입니다.");
+            }
 
-        user.setUserId(userDto.getUserId());
-        user.setPasswordHash(passwordEncoder.encode(userDto.getPasswordHash()));
-        user.setName(userDto.getName());
-        user.setEmail(userDto.getEmail());
-        user.setPhoneNumber(userDto.getPhoneNumber());
-        user.setDepartment(userDto.getDepartment());
-        user.setRole(User.Role.valueOf(userDto.getRole().toUpperCase()));
-        user.setDeptCode(userDto.getDeptCode());
-        user.setCreatedAt(LocalDateTime.now());
+            User user = new User();
+            user.setUserId(userDto.getUserId());
+            user.setPasswordHash(passwordEncoder.encode(userDto.getPasswordHash()));
+            user.setName(userDto.getName());
+            user.setEmail(userDto.getEmail());
+            user.setPhoneNumber(userDto.getPhoneNumber());
+            user.setDepartment(userDto.getDepartment());
+            
+            // Role 설정 및 MANAGER인 경우 deptCode 생성
+            User.Role role = User.Role.valueOf(userDto.getRole().toUpperCase());
+            user.setRole(role);
+            if (role == User.Role.MANAGER) {
+                user.setDeptCode(userDto.generateRandomDeptCode());
+            } else {
+                user.setDeptCode(userDto.getDeptCode());  // MANAGER가 아닐 경우 사용자가 보낸 값 사용
+            }
+            
+            user.setCreatedAt(LocalDateTime.now());
 
-        return userRepository.save(user);
+            return userRepository.save(user);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("잘못된 role 값입니다: " + userDto.getRole());
+        } catch (Exception e) {
+            throw new RuntimeException("회원가입 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 
     /**
