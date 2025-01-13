@@ -2,7 +2,6 @@ package com.example.Insideout.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import java.util.Random;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,25 +30,5 @@ public class UserDto {
     private String role;
     private String deptCode;
 
-    public void setRole(String role) {
-        this.role = role;
-        if ("MANAGER".equalsIgnoreCase(role)) {
-            this.deptCode = generateRandomDeptCode();
-        }
-    }
-
-    public String generateRandomDeptCode() {
-        Random random = new Random();
-        StringBuilder code = new StringBuilder();
-        for (int i = 0; i < 6; i++) {
-            int n = random.nextInt(36);
-            if (n < 10) {
-                code.append(n);
-            } else {
-                code.append((char) (n + 55));
-            }
-        }
-        return code.toString();
-    }
 }
 
