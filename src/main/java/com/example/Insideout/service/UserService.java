@@ -37,7 +37,12 @@ public class UserService implements UserDetailsService {
         user.setRole(User.Role.valueOf(userDto.getRole().toUpperCase()));
 
         if ("MANAGER".equalsIgnoreCase(userDto.getRole())) {
-            user.setDeptCode(departmentService.generateUniqueDeptCode());
+            String deptCode = departmentService.generateUniqueDeptCode();
+            user.setDeptCode(deptCode);
+
+            userDto.setDeptCode(deptCode);
+            departmentService.saveDepartmentFromuserDto(userDto);
+
         } else if ("USER".equalsIgnoreCase(userDto.getRole())) {
             String deptCode = user.getDeptCode();
             String department_name = departmentService.findDepartmentByDeptCode(deptCode);

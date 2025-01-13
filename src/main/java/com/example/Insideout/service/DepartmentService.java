@@ -54,11 +54,21 @@ public class DepartmentService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalide department code"));
     }
 
-    public Department saveDepartment(DepartmentDto departmentDto, UserDto userDto) {
+    public Department saveDepartmentFromuserDto(UserDto userDto) {
+        DepartmentDto departmentDto = new DepartmentDto();
+
+        departmentDto.setDeptCode(userDto.getDeptCode());
+        departmentDto.setDepartment(userDto.getDepartment());
+
+        return saveDepartment(departmentDto);
+    }
+
+
+    public Department saveDepartment(DepartmentDto departmentDto) {
         Department department = new Department();
 
-        department.setDeptCode(userDto.getDeptCode());
-        department.setDepartment(userDto.getDepartment());
+        department.setDeptCode(departmentDto.getDeptCode());
+        department.setDepartment(departmentDto.getDepartment());
 
         return departmentRepository.save(department);
     }
