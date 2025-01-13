@@ -1,6 +1,6 @@
 package com.example.Insideout.service;
 
-import com.example.Insideout.dto.DepartmentsDto;
+import com.example.Insideout.dto.DepartmentDto;
 import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.entity.Department;
 import com.example.Insideout.repository.DepartmentRepository;
@@ -54,7 +54,7 @@ public class DepartmentService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalide department code"));
     }
 
-    public Department saveDepartment(DepartmentsDto departmentsDto, UserDto userDto) {
+    public Department saveDepartment(DepartmentDto departmentDto, UserDto userDto) {
         Department department = new Department();
 
         department.setDeptCode(userDto.getDeptCode());

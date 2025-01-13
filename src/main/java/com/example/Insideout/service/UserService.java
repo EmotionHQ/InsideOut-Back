@@ -15,13 +15,13 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final DepartmentService departmentsService;
+    private final DepartmentService departmentService;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       DepartmentService departmentsService) {
+                       DepartmentService departmentService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.departmentsService = departmentsService;
+        this.departmentService = departmentService;
 
     }
 
@@ -37,13 +37,13 @@ public class UserService implements UserDetailsService {
         user.setRole(User.Role.valueOf(userDto.getRole().toUpperCase()));
 
         if ("MANAGER".equalsIgnoreCase(userDto.getRole())) {
-            user.setDeptCode(departmentsService.generateUniqueDeptCode());
+            user.setDeptCode(departmentService.generateUniqueDeptCode());
         } else if ("USER".equalsIgnoreCase(userDto.getRole())) {
             String deptCode = user.getDeptCode();
-            String departments_name = departmentsService.findDepartmentByDeptCode(deptCode);
+            String department_name = departmentService.findDepartmentByDeptCode(deptCode);
 
             user.setDeptCode(deptCode);
-            user.setDepartment(departments_name);
+            user.setDepartment(department_name);
 
         } else if ("ADMIN".equalsIgnoreCase(userDto.getRole())) {
             user.setDeptCode(null);
