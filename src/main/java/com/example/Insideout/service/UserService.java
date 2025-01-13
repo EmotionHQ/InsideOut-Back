@@ -15,43 +15,49 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DepartmentService departmentService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       DepartmentService departmentService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.departmentService = departmentService;
+
     }
 
     public User registerUser(UserDto userDto) {
-        try {
-            if (userRepository.findById(userDto.getUserId()).isPresent()) {
-                throw new RuntimeException("이미 존재하는 사용자 ID입니다.");
-            }
+        User user = new User();
 
-            User user = new User();
-            user.setUserId(userDto.getUserId());
-            user.setPasswordHash(passwordEncoder.encode(userDto.getPasswordHash()));
-            user.setName(userDto.getName());
-            user.setEmail(userDto.getEmail());
-            user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setUserId(userDto.getUserId());
+        user.setPasswordHash(passwordEncoder.encode(userDto.getPasswordHash()));
+        user.setName(userDto.getName());
+        user.setEmail(userDto.getEmail());
+        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setRole(User.Role.valueOf(userDto.getRole().toUpperCase()));
+
+        if ("MANAGER".equalsIgnoreCase(userDto.getRole())) {
+            String deptCode = departmentService.generateUniqueDeptCode();
+            user.setDeptCode(deptCode);
             user.setDepartment(userDto.getDepartment());
-            
-            // Role 설정 및 MANAGER인 경우 deptCode 생성
-            User.Role role = User.Role.valueOf(userDto.getRole().toUpperCase());
-            user.setRole(role);
-            if (role == User.Role.MANAGER) {
-                user.setDeptCode(userDto.generateRandomDeptCode());
-            } else {
-                user.setDeptCode(userDto.getDeptCode());  // MANAGER가 아닐 경우 사용자가 보낸 값 사용
-            }
-            
-            user.setCreatedAt(LocalDateTime.now());
 
-            return userRepository.save(user);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("잘못된 role 값입니다: " + userDto.getRole());
-        } catch (Exception e) {
-            throw new RuntimeException("회원가입 중 오류가 발생했습니다: " + e.getMessage());
+            userDto.setDeptCode(deptCode);
+            departmentService.saveDepartmentFromuserDto(userDto);
+
+        } else if ("USER".equalsIgnoreCase(userDto.getRole())) {
+            String deptCode = userDto.getDeptCode();
+            String departmentName = departmentService.findDepartmentByDeptCode(deptCode);
+
+            user.setDeptCode(deptCode);
+            user.setDepartment(departmentName);
+
+        } else if ("ADMIN".equalsIgnoreCase(userDto.getRole())) {
+            user.setDeptCode(null);
+            user.setDepartment(null);
         }
+
+        user.setCreatedAt(LocalDateTime.now());
+
+        return userRepository.save(user);
     }
 
     /**
