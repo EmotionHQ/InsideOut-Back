@@ -29,17 +29,17 @@ public class User {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "phonenumber", nullable = true)
+    @Column(name = "phonenumber")
     private String phoneNumber;
 
-    @Column(name = "department", nullable = true)
+    @Column(name = "department")
     private String department;
 
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role; // Enum 타입
 
-    @Column(name = "dept_code", nullable = true)
+    @Column(name = "dept_code")
     private String deptCode;
 
     @Column(name = "created_at", nullable = false)

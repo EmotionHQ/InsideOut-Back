@@ -71,6 +71,7 @@ public class DepartmentService {
         if (departmentRepository.existsByDepartment(departmentDto.getDepartment())) {
             throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + departmentDto.getDepartment());
         }
+        department.setDepartment(departmentDto.getDepartment());
 
         return departmentRepository.save(department);
     }
