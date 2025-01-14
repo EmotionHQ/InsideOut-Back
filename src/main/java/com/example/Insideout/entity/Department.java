@@ -14,10 +14,10 @@ import lombok.Setter;
 public class Department {
 
     @Id
-    @Column(name = "dept_code", nullable = false)
+    @Column(name = "dept_code", nullable = false, unique = true)
     private String deptCode;
 
-    @Column(name = "department_name", nullable = false)
+    @Column(name = "department_name", nullable = false, unique = true)
     private String department;
 
 }
