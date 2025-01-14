@@ -27,10 +27,10 @@ public class Board {
     @Column(length = 2000,name = "content", nullable = false)
     private String content; //내용
 
-    @Column(name = "created_Time", nullable = false)
+    @Column(name = "created_Time")
     private LocalDateTime createdTime;//작성시간
 
-    @Column(name = "modified_Time", nullable = true)
+    @Column(name = "modified_Time")
     private LocalDateTime modifiedTime; // 수정시간
 
 }
