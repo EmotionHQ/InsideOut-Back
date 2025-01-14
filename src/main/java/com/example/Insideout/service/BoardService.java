@@ -7,7 +7,6 @@ import com.example.Insideout.dto.BoardResponse;
 import com.example.Insideout.entity.Board;
 import com.example.Insideout.repository.BoardRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +17,7 @@ public class BoardService {
 
         this.boardRepository = boardRepository;
     }
+
     // 작성
     public BoardResponse createPost(BoardRequest request) {
         Board board = new Board(request);

@@ -17,8 +17,7 @@ public class BoardResponse {
     private LocalDateTime modifiedTime;
     private String message;
 
-    public BoardResponse(Long inquiryId, String userId, String title, String content , String message, LocalDateTime createdTime, LocalDateTime modifiedTime) {
-        this.inquiryId = inquiryId;
+    public BoardResponse(String userId, String title, String content, String message) {
         this.userId = userId;
         this.title = title;
         this.content = content;
