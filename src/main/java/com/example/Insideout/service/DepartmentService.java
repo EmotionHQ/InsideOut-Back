@@ -51,10 +51,10 @@ public class DepartmentService {
     public String findDepartmentByDeptCode(String deptCode) {
         return departmentRepository.findByDeptCode(deptCode)
                 .map(Department -> Department.getDepartment())
-                .orElseThrow(() -> new IllegalArgumentException("Invalide department code"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid department code"));
     }
 
-    public Department saveDepartmentFromuserDto(UserDto userDto) {
+    public Department saveDepartmentFromUserDto(UserDto userDto) {
         DepartmentDto departmentDto = new DepartmentDto();
 
         departmentDto.setDeptCode(userDto.getDeptCode());
@@ -68,7 +68,9 @@ public class DepartmentService {
         Department department = new Department();
 
         department.setDeptCode(departmentDto.getDeptCode());
-        department.setDepartment(departmentDto.getDepartment());
+        if (departmentRepository.existsByDepartment(departmentDto.getDepartment())) {
+            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + departmentDto.getDepartment());
+        }
 
         return departmentRepository.save(department);
     }
