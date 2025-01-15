@@ -1,5 +1,6 @@
 package com.example.Insideout.service;
 
+import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.SessionCreationRequest;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
@@ -47,10 +48,13 @@ public class SessionService {
     유저 아이디로 세션 정보 조회
      */
     public List<SessionInfo> getSessionsByUserId(String userId) {
-//        if (sessions.isEmpty()) {
-//            throw new IllegalArgumentException("해당 유저는 세션이 없습니다");
-//        }
-
         return sessionRepository.findAllSessionsByUserId(userId);
+    }
+
+    /*
+    세션 아이디로 메세지 정보 조회
+     */
+    public List<MessageResponse> getMessagesBySessionId(Long sessionId) {
+        return messageRepository.findMessagesBySessionId(sessionId);
     }
 }
