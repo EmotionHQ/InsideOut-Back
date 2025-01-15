@@ -31,7 +31,7 @@ public class Board {
     @Column(name = "title", nullable = false)
     private String title; //제목
 
-    @Column(length = 2000,name = "content", nullable = false)
+    @Column(length = 2000, name = "content", nullable = false)
     private String content; //내용
 
     @Column(name = "created_Time")
@@ -45,5 +45,4 @@ public class Board {
         this.content = request.getContent();
         this.userId = request.getUserId();
     }
-
 }
