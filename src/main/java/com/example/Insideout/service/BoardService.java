@@ -118,4 +118,25 @@ public class BoardService {
                 "게시글이 성공적으로 등록되었습니다."
         );
     }
+
+    // 공지 게시글 수정
+    public BoardResponse updatePost(BoardRequest request) {
+        Board board = boardRepository.findById(request.getInquiryId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
+
+        board.setTitle(request.getTitle());
+        board.setContent(request.getContent());
+        board.setModifiedTime(LocalDateTime.now());
+
+        boardRepository.save(board);
+
+        return new BoardResponse(
+                board.getUserId(),
+                board.getTitle(),
+                board.getContent(),
+                board.getModifiedTime(),
+                "문의 게시글이 성공적으로 수정되었습니다."
+        );
+    }
+
 }

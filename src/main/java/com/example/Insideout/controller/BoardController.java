@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,5 +57,15 @@ public class BoardController {
     public ResponseEntity<BoardResponse> createBoard(@RequestBody BoardRequest request) {
         BoardResponse response = boardService.createPost(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // 수정
+    // pathVariable : url 경로에서 inquiryId 값 추출해서 inquiryId 변수에 매핑하는 역할
+    // requestBody : 본문에 있는 json 데이터 BoardRequest 객체로 매핑
+    @PutMapping("/modify/{inquiryId}")
+    public ResponseEntity<BoardResponse> updateBoard(@PathVariable("inquiryId") Long inquiryId, @RequestBody BoardRequest request) {
+        request.setInquiryId(inquiryId);
+        BoardResponse response = boardService.updatePost(request);
+        return ResponseEntity.ok(response);
     }
 }

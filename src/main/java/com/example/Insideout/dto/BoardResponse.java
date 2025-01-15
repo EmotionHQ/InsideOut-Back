@@ -25,6 +25,15 @@ public class BoardResponse {
         this.message = message;
     }
 
+    // 수정 Dto
+    public BoardResponse(String userId, String title, String content, LocalDateTime modifiedTime, String message) {
+        this.userId = userId;
+        this.title = title;
+        this.content = content;
+        this.modifiedTime = modifiedTime;
+        this.message = message;
+    }
+
     // 전체 조회 Dto
     public BoardResponse(String userId, String title, String message) {
         this.userId = userId;
