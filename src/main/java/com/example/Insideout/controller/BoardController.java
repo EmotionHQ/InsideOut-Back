@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +30,13 @@ public class BoardController {
         return ResponseEntity.ok(responses);
     }
 
+    //공지사항 상세조회
+    @GetMapping("/notice/{inquiryId}")
+    private ResponseEntity<BoardResponse> getNoticeDetail(@PathVariable Long inquiryId) {
+        BoardResponse response = boardService.getNoticeDetail(inquiryId);
+        return ResponseEntity.ok(response);
+    }
+
     //문의게시판 조회
     @GetMapping("/inquiry")
     public ResponseEntity<List<BoardResponse>> getInquiryBoard() {
@@ -36,6 +44,12 @@ public class BoardController {
         return ResponseEntity.ok(responses);
     }
 
+    // 문의 게시판 상세 조회
+    @GetMapping("/inquiry/{inquiryId}")
+    private ResponseEntity<BoardResponse> getInquiryDetail(@PathVariable Long inquiryId) {
+        BoardResponse response = boardService.getInquiryDetail(inquiryId);
+        return ResponseEntity.ok(response);
+    }
 
     // 작성
     @PostMapping("/create")

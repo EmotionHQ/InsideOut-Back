@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BoardRequest {
+    private Long inquiryId;
     private String userId;
     private String title;
     private String content;
