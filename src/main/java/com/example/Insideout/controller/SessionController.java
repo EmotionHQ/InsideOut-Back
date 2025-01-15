@@ -1,13 +1,15 @@
 package com.example.Insideout.controller;
 
 import com.example.Insideout.dto.SessionCreationRequest;
+import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
 import com.example.Insideout.service.SessionService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,8 +23,12 @@ public class SessionController {
     }
 
     @PostMapping("/session/create")
-    public ResponseEntity<SessionResponse> createSession(@RequestBody SessionCreationRequest requestDTO) {
-        SessionResponse responseDTO = sessionService.createNewSession(requestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
+    public SessionResponse createSession(@RequestBody SessionCreationRequest requestDTO) {
+        return sessionService.createNewSession(requestDTO);
+    }
+
+    @GetMapping("/sessions")
+    public List<SessionInfo> getUserSessions(@RequestParam String userId) {
+        return sessionService.getSessionsByUserId(userId);
     }
 }

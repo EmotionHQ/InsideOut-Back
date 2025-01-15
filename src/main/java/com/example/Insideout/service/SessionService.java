@@ -1,6 +1,7 @@
 package com.example.Insideout.service;
 
 import com.example.Insideout.dto.SessionCreationRequest;
+import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
 import com.example.Insideout.entity.Message;
 import com.example.Insideout.entity.Message.AuthorType;
@@ -8,6 +9,7 @@ import com.example.Insideout.entity.Session;
 import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +23,9 @@ public class SessionService {
         this.messageRepository = messageRepository;
     }
 
+    /*
+    세션 생성
+     */
     @Transactional
     public SessionResponse createNewSession(SessionCreationRequest requestDTO) {
         // 새로운 세션 생성
@@ -36,5 +41,16 @@ public class SessionService {
         messageRepository.save(message);
 
         return new SessionResponse(session.getSessionId(), session.getUserId(), session.getCreatedAt());
+    }
+
+    /*
+    유저 아이디로 세션 정보 조회
+     */
+    public List<SessionInfo> getSessionsByUserId(String userId) {
+//        if (sessions.isEmpty()) {
+//            throw new IllegalArgumentException("해당 유저는 세션이 없습니다");
+//        }
+
+        return sessionRepository.findAllSessionsByUserId(userId);
     }
 }
