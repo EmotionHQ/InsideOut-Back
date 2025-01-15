@@ -7,6 +7,7 @@ import com.example.Insideout.dto.BoardResponse;
 import com.example.Insideout.entity.Board;
 import com.example.Insideout.repository.BoardRepository;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +17,42 @@ public class BoardService {
     public BoardService(BoardRepository boardRepository) {
 
         this.boardRepository = boardRepository;
+    }
+
+    /*
+    공지사항 조회
+     */
+    public List<BoardResponse> getNoticeBoards() {
+        List<Board> boards = boardRepository.findNoticeBoards();
+
+        return boards.stream()
+                .map(board -> new BoardResponse(
+                        board.getInquiryId(),
+                        board.getUserId(),
+                        board.getTitle(),
+                        board.getContent(),
+                        board.getCreatedTime(),
+                        "공지사항 조회 성공"
+                ))
+                .toList();
+    }
+
+    /*
+    문의 게시판 조회
+     */
+    public List<BoardResponse> getInquiryBoards() {
+        List<Board> boards = boardRepository.findInquiryBoards();
+
+        return boards.stream()
+                .map(board -> new BoardResponse(
+                        board.getInquiryId(),
+                        board.getUserId(),
+                        board.getTitle(),
+                        board.getContent(),
+                        board.getCreatedTime(),
+                        "문의게시판 조회 성공"
+                ))
+                .toList();
     }
 
     // 작성
