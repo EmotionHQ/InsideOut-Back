@@ -1,5 +1,6 @@
 package com.example.Insideout.entity;
 
+import com.example.Insideout.dto.BoardRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,9 +9,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "Board")
 public class Board {
     @Id
@@ -32,5 +39,11 @@ public class Board {
 
     @Column(name = "modified_Time")
     private LocalDateTime modifiedTime; // 수정시간
+
+    public Board(BoardRequest request) {
+        this.title = request.getTitle();
+        this.content = request.getContent();
+        this.userId = request.getUserId();
+    }
 
 }
