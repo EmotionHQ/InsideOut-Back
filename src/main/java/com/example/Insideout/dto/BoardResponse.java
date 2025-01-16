@@ -51,6 +51,11 @@ public class BoardResponse {
         this.message = message;
     }
 
+    // 삭제 Dto
+    public BoardResponse(String message) {
+        this.message = message;
+    }
+
 }
 
 

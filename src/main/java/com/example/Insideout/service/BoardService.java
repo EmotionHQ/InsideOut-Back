@@ -5,19 +5,25 @@ package com.example.Insideout.service;
 import com.example.Insideout.dto.BoardRequest;
 import com.example.Insideout.dto.BoardResponse;
 import com.example.Insideout.entity.Board;
+import com.example.Insideout.entity.User;
 import com.example.Insideout.repository.BoardRepository;
+import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class BoardService {
     private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
 
-    public BoardService(BoardRepository boardRepository) {
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
 
         this.boardRepository = boardRepository;
+        this.userRepository = userRepository;
     }
 
     /*
@@ -124,6 +130,10 @@ public class BoardService {
         Board board = boardRepository.findById(request.getInquiryId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
 
+        if (!board.getUserId().equals(request.getUserId())){
+            throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
+        }
+
         board.setTitle(request.getTitle());
         board.setContent(request.getContent());
         board.setModifiedTime(LocalDateTime.now());
@@ -135,8 +145,43 @@ public class BoardService {
                 board.getTitle(),
                 board.getContent(),
                 board.getModifiedTime(),
-                "문의 게시글이 성공적으로 수정되었습니다."
+                "공지 게시글이 성공적으로 수정되었습니다."
         );
+    }
+
+    // 공지 게시글 삭제
+    public BoardResponse deleteNotice(BoardRequest request) {
+        Board board = boardRepository.findById(request.getInquiryId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        if (!user.getRole().equals(User.Role.ADMIN)) {
+            throw  new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 삭제 권한이 없습니다.");
+        }
+
+        boardRepository.delete(board);
+
+        return new BoardResponse("공지 게시글이 성공적으로 삭제되었습니다.");
+    }
+
+    // 문의 게시글 삭제
+    public BoardResponse deleteInquiry(BoardRequest request) {
+        Board board = boardRepository.findById(request.getInquiryId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+
+        if (!board.getUserId().equals(request.getUserId()) && !user.getRole().equals(User.Role.ADMIN)) {
+            throw  new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
+        }
+
+        boardRepository.delete(board);
+
+        return new BoardResponse("게시글이 성공적으로 삭제되었습니다.");
     }
 
 }

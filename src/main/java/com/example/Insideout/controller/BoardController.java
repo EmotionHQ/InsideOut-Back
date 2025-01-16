@@ -6,6 +6,7 @@ import com.example.Insideout.service.BoardService;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,6 +67,20 @@ public class BoardController {
     public ResponseEntity<BoardResponse> updateBoard(@PathVariable("inquiryId") Long inquiryId, @RequestBody BoardRequest request) {
         request.setInquiryId(inquiryId);
         BoardResponse response = boardService.updatePost(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // 공지글 삭제
+    @DeleteMapping("/notice/delete")
+    public ResponseEntity<BoardResponse> deleteBoard( @RequestBody BoardRequest request) {
+        BoardResponse response = boardService.deleteNotice(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // 문의 게시글 삭제
+    @DeleteMapping("/inquiry/delete")
+    public ResponseEntity<BoardResponse> deleteInquiry( @RequestBody BoardRequest request) {
+        BoardResponse response = boardService.deleteInquiry(request);
         return ResponseEntity.ok(response);
     }
 }
