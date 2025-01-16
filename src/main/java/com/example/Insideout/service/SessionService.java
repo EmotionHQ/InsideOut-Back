@@ -63,11 +63,32 @@ public class SessionService {
      */
     @Transactional
     public void updateOrsScore(Long sessionId, Integer orsScore) {
-        Session session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 세션이 존재하지 않습니다: " + sessionId));
+        Session session = getSession(sessionId);
 
         session.setOrsScore(orsScore);
 
         sessionRepository.save(session);
+    }
+
+    /*
+    세션 종료 - srs, 동의 여부 업데이트
+     */
+    @Transactional
+    public void endSession(Long sessionId, Integer srsScore, Session.AgreementType agreement) {
+        Session session = getSession(sessionId);
+
+        if (session.isClosed()) {
+            throw new IllegalStateException("이미 종료된 세션입니다");
+        }
+        session.setSrsScore(srsScore);
+        session.setAgreement(agreement);
+        session.setClosed(true);
+
+        sessionRepository.save(session);
+    }
+
+    private Session getSession(Long sessionId) {
+        return sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 세션이 존재하지 않습니다: " + sessionId));
     }
 }

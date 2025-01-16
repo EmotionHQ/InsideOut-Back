@@ -3,6 +3,7 @@ package com.example.Insideout.controller;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.ORSRequest;
 import com.example.Insideout.dto.SessionCreationRequest;
+import com.example.Insideout.dto.SessionEndRequest;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
 import com.example.Insideout.service.SessionService;
@@ -46,5 +47,11 @@ public class SessionController {
     public ResponseEntity<String> updateOrsScore(@RequestBody ORSRequest request) {
         sessionService.updateOrsScore(request.getSessionId(), request.getOrsScore());
         return ResponseEntity.ok("ORS score updated successfully.");
+    }
+
+    @PutMapping("/session/terminate")
+    public ResponseEntity<String> updateSessionDetails(@RequestBody SessionEndRequest request) {
+        sessionService.endSession(request.getSessionId(), request.getSrsScore(), request.getAgreement());
+        return ResponseEntity.ok("Session details updated successfully.");
     }
 }
