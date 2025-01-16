@@ -63,8 +63,9 @@ public class BoardController {
     // 수정
     // pathVariable : url 경로에서 inquiryId 값 추출해서 inquiryId 변수에 매핑하는 역할
     // requestBody : 본문에 있는 json 데이터 BoardRequest 객체로 매핑
-    @PutMapping("/modify/{inquiryId}")
-    public ResponseEntity<BoardResponse> updateBoard(@PathVariable("inquiryId") Long inquiryId, @RequestBody BoardRequest request) {
+    @PutMapping("/notice/modify/{inquiryId}")
+    public ResponseEntity<BoardResponse> updateBoard(@PathVariable("inquiryId") Long inquiryId,
+                                                     @RequestBody BoardRequest request) {
         request.setInquiryId(inquiryId);
         BoardResponse response = boardService.updatePost(request);
         return ResponseEntity.ok(response);
@@ -72,14 +73,14 @@ public class BoardController {
 
     // 공지글 삭제
     @DeleteMapping("/notice/delete")
-    public ResponseEntity<BoardResponse> deleteBoard( @RequestBody BoardRequest request) {
+    public ResponseEntity<BoardResponse> deleteBoard(@RequestBody BoardRequest request) {
         BoardResponse response = boardService.deleteNotice(request);
         return ResponseEntity.ok(response);
     }
 
     // 문의 게시글 삭제
     @DeleteMapping("/inquiry/delete")
-    public ResponseEntity<BoardResponse> deleteInquiry( @RequestBody BoardRequest request) {
+    public ResponseEntity<BoardResponse> deleteInquiry(@RequestBody BoardRequest request) {
         BoardResponse response = boardService.deleteInquiry(request);
         return ResponseEntity.ok(response);
     }
