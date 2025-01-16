@@ -57,4 +57,17 @@ public class SessionService {
     public List<MessageResponse> getMessagesBySessionId(Long sessionId) {
         return messageRepository.findMessagesBySessionId(sessionId);
     }
+
+    /*
+    ORS 점수 업데이트
+     */
+    @Transactional
+    public void updateOrsScore(Long sessionId, Integer orsScore) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 세션이 존재하지 않습니다: " + sessionId));
+
+        session.setOrsScore(orsScore);
+
+        sessionRepository.save(session);
+    }
 }
