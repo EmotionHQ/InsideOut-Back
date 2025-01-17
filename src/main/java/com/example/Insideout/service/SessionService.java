@@ -1,5 +1,6 @@
 package com.example.Insideout.service;
 
+import com.example.Insideout.dto.MessageRequest;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.SessionCreationRequest;
 import com.example.Insideout.dto.SessionInfo;
@@ -18,10 +19,13 @@ public class SessionService {
 
     private final SessionRepository sessionRepository;
     private final MessageRepository messageRepository;
+    private final FastApiClient fastApiClient;
 
-    public SessionService(SessionRepository sessionRepository, MessageRepository messageRepository) {
+    public SessionService(SessionRepository sessionRepository, MessageRepository messageRepository,
+                          FastApiClient fastApiClient) {
         this.sessionRepository = sessionRepository;
         this.messageRepository = messageRepository;
+        this.fastApiClient = fastApiClient;
     }
 
     /*
@@ -90,5 +94,35 @@ public class SessionService {
     private Session getSession(Long sessionId) {
         return sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 세션이 존재하지 않습니다: " + sessionId));
+    }
+
+    /**
+     * 메세지 전달 및 저장
+     */
+    public MessageResponse processMessage(MessageRequest messageRequest) {
+        // sessionId로 세션 조회
+        Session session = sessionRepository.findById(messageRequest.getSessionId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 세션이 존재하지 않습니다: " + messageRequest.getSessionId()));
+
+        // userMessage 생성 및 DB 저장
+        Message userMessage = new Message();
+        userMessage.setSession(session);
+        userMessage.setContent(messageRequest.getContent());
+        userMessage.setAuthorType(Message.AuthorType.USER);
+        userMessage.setCreatedAt(messageRequest.getCreatedAt());
+        messageRepository.save(userMessage);
+
+        // FastAPI로 메시지 전달 및 응답 받기
+        MessageResponse aiResponse = fastApiClient.sendMessageToFastApi(messageRequest.getSessionId());
+
+        // AI 메시지 생성 및 저장
+        Message aiMessage = new Message();
+        aiMessage.setSession(session);
+        aiMessage.setContent(aiResponse.getContent());
+        aiMessage.setAuthorType(Message.AuthorType.AI);
+        aiMessage.setCreatedAt(aiResponse.getCreatedAt());
+        messageRepository.save(aiMessage);
+
+        return aiResponse;
     }
 }
