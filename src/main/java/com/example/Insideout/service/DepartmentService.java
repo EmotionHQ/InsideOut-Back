@@ -1,6 +1,5 @@
 package com.example.Insideout.service;
 
-import com.example.Insideout.dto.DepartmentDto;
 import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.entity.Department;
 import com.example.Insideout.repository.DepartmentRepository;
@@ -55,32 +54,30 @@ public class DepartmentService {
     }
 
     /**
-     * 부서장 회원 가입 시 부서 저장 (부서코드, 부서명)
+     * 부서장 회원 가입 시 부서 저장 (부서 코드, 부서명)
      */
     public void saveDepartmentFromUserDto(UserDto userDto) {
-        //DepartmentDto departmentDto = new DepartmentDto();
         Department department = new Department();
 
-        //departmentDto.setDeptCode(userDto.getDeptCode());
-        //departmentDto.setDepartment(userDto.getDepartment());
+        if (departmentRepository.existsByDepartment(userDto.getDepartment())) {
+            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + userDto.getDepartment());
+        }
         department.setDeptCode(userDto.getDeptCode());
         department.setDepartment(userDto.getDepartment());
 
         departmentRepository.save(department);
-        //return saveDepartment(departmentDto);
     }
 
-
-    public Department saveDepartment(DepartmentDto departmentDto) {
-        Department department = new Department();
-
-        department.setDeptCode(departmentDto.getDeptCode());
-        if (departmentRepository.existsByDepartment(departmentDto.getDepartment())) {
-            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + departmentDto.getDepartment());
-        }
-        department.setDepartment(departmentDto.getDepartment());
-
-        return departmentRepository.save(department);
-    }
+//    public Department saveDepartment(DepartmentDto departmentDto) {
+//        Department department = new Department();
+//
+//        department.setDeptCode(departmentDto.getDeptCode());
+//        if (departmentRepository.existsByDepartment(departmentDto.getDepartment())) {
+//            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + departmentDto.getDepartment());
+//        }
+//        department.setDepartment(departmentDto.getDepartment());
+//
+//        return departmentRepository.save(department);
+//    }
 }
 

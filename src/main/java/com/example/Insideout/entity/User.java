@@ -32,9 +32,6 @@ public class User {
     @Column(name = "phonenumber")
     private String phoneNumber;
 
-    //@Column(name = "department")
-    //private String department;
-
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role; // Enum 타입
