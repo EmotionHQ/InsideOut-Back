@@ -35,14 +35,16 @@ public class BoardResponse {
     }
 
     // 전체 조회 Dto
-    public BoardResponse(String userId, String title, String message) {
+    public BoardResponse(Long inquiryId, String userId, String title, String message) {
+        this.inquiryId = inquiryId;
         this.userId = userId;
         this.title = title;
         this.message = message;
     }
 
     // 상세 조회 Dto
-    public BoardResponse(String userId, String title, String content, LocalDateTime createdTime, LocalDateTime modifiedTime, String message) {
+    public BoardResponse(String userId, String title, String content, LocalDateTime createdTime,
+                         LocalDateTime modifiedTime, String message) {
         this.userId = userId;
         this.title = title;
         this.content = content;
