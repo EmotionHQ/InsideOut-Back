@@ -3,6 +3,7 @@ package com.example.Insideout.controller;
 import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.dto.PasswordVerificationDto;
 import com.example.Insideout.dto.UserUpdateDto;
+import com.example.Insideout.dto.UserInfoDto;
 import com.example.Insideout.entity.User;
 import com.example.Insideout.service.UserService;
 import com.example.Insideout.service.JwtUtil;
@@ -74,7 +75,17 @@ public class UserController {
         try {
             String userId = jwtUtil.extractUserId(token.substring(7));
             User user = userService.findByUserId(userId);
-            return ResponseEntity.ok(user);
+            
+            UserInfoDto userInfo = new UserInfoDto();
+            userInfo.setUserId(user.getUserId());
+            userInfo.setName(user.getName());
+            userInfo.setEmail(user.getEmail());
+            userInfo.setPhoneNumber(user.getPhoneNumber());
+            userInfo.setDepartment(user.getDepartment());
+            userInfo.setRole(user.getRole().name());
+            userInfo.setDeptCode(user.getDeptCode());
+            
+            return ResponseEntity.ok(userInfo);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "사용자 정보 조회 중 오류가 발생했습니다."));
