@@ -10,7 +10,6 @@ public class UserInfoDto {
     private String name;
     private String email;
     private String phoneNumber;
-    private String department;
     private String role;
     private String deptCode;
 } 

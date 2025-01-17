@@ -81,7 +81,6 @@ public class UserController {
             userInfo.setName(user.getName());
             userInfo.setEmail(user.getEmail());
             userInfo.setPhoneNumber(user.getPhoneNumber());
-            userInfo.setDepartment(user.getDepartment());
             userInfo.setRole(user.getRole().name());
             userInfo.setDeptCode(user.getDeptCode());
             
