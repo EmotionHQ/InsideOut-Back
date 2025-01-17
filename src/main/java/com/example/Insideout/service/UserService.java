@@ -38,7 +38,7 @@ public class UserService implements UserDetailsService {
         if ("MANAGER".equalsIgnoreCase(userDto.getRole())) {
             String deptCode = departmentService.generateUniqueDeptCode();
             user.setDeptCode(deptCode);
-            user.setDepartment(userDto.getDepartment());
+            //user.setDepartment(userDto.getDepartment());
 
             userDto.setDeptCode(deptCode);
             departmentService.saveDepartmentFromUserDto(userDto);
@@ -48,11 +48,11 @@ public class UserService implements UserDetailsService {
             String departmentName = departmentService.findDepartmentByDeptCode(deptCode);
 
             user.setDeptCode(deptCode);
-            user.setDepartment(departmentName);
+            //user.setDepartment(departmentName);
 
         } else if ("ADMIN".equalsIgnoreCase(userDto.getRole())) {
             user.setDeptCode(null);
-            user.setDepartment(null);
+            //user.setDepartment(null);
         }
 
         user.setCreatedAt(LocalDateTime.now());
