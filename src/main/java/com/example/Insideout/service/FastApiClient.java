@@ -4,6 +4,7 @@ import com.example.Insideout.dto.MessageResponse;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import java.time.LocalDateTime;
 
 @Component
 public class FastApiClient {
@@ -21,7 +22,16 @@ public class FastApiClient {
         try {
             String url = "http://localhost:8000/api/process";
             Map<String, Long> request = Map.of("sessionId", sessionId);
-            return restTemplate.postForObject(url, request, MessageResponse.class);
+            
+            // FastAPI로부터 응답 받기
+            MessageResponse response = restTemplate.postForObject(url, request, MessageResponse.class);
+            
+            // 현재 시간으로 생성 시간 설정
+            if (response != null && response.getCreatedAt() == null) {
+                response.setCreatedAt(LocalDateTime.now());
+            }
+            
+            return response;
         } catch (Exception e) {
             throw new RuntimeException("FastAPI 연결 실패", e);
         }
