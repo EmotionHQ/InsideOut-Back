@@ -61,7 +61,7 @@ public class SecurityConfig {
             "http://localhost:3000", 
             "https://insideout-front.netlify.app",
             "http://localhost:8000",  // FastAPI 서버 URL
-            "insideout-ai-production.up.railway.app"
+            "https://insideout-ai-production.up.railway.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
