@@ -20,7 +20,8 @@ public class FastApiClient {
      */
     public MessageResponse sendMessageToFastApi(Long sessionId) {
         try {
-            String url = "http://localhost:8000/api/process";
+            // String url = "http://localhost:8000/api/process";
+            String url = "https://insideout-ai-production.up.railway.app/api/process";
             Map<String, Long> request = Map.of("sessionId", sessionId);
             
             // FastAPI로부터 응답 받기
