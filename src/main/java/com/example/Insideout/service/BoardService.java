@@ -19,11 +19,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class BoardService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final UploadFileService uploadFileService;
 
-    public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository,
+                        UploadFileService uploadFileService) {
 
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
+        this.uploadFileService = uploadFileService;
     }
 
     /*
@@ -64,7 +67,6 @@ public class BoardService {
                 "공지사항 상세조회 성공"
         );
     }
-
 
 
     /*
@@ -114,10 +116,14 @@ public class BoardService {
 
         board.setCreatedTime(LocalDateTime.now());
         board.setModifiedTime(LocalDateTime.now());
-
         boardRepository.save(board);
 
+        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+            uploadFileService.uploadFile(request.getImageFile(), board);
+        }
+
         return new BoardResponse(
+                board.getInquiryId(),
                 board.getUserId(),
                 board.getTitle(),
                 board.getContent(),
@@ -130,7 +136,7 @@ public class BoardService {
         Board board = boardRepository.findById(request.getInquiryId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
 
-        if (!board.getUserId().equals(request.getUserId())){
+        if (!board.getUserId().equals(request.getUserId())) {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
@@ -158,7 +164,7 @@ public class BoardService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
         if (!user.getRole().equals(User.Role.ADMIN)) {
-            throw  new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 삭제 권한이 없습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 삭제 권한이 없습니다.");
         }
 
         boardRepository.delete(board);
@@ -174,9 +180,8 @@ public class BoardService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-
         if (!board.getUserId().equals(request.getUserId()) && !user.getRole().equals(User.Role.ADMIN)) {
-            throw  new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
         }
 
         boardRepository.delete(board);
