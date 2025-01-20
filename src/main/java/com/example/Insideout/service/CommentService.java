@@ -58,4 +58,21 @@ public class CommentService {
         );
 
     }
+
+    /*
+    댓글 삭제
+    */
+    public void deleteComment(Long commentId, String userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        if (!comment.getUserId().equals(userId) && !user.getRole().equals(User.Role.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다.");
+        }
+        commentRepository.delete(comment);
+    }
 }
+
