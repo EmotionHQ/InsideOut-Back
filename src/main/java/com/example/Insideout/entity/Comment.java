@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 // 댓글 아이디,문의 아이디,유저 아이디,댓글 내용,작성 시간
-// 필터링 : 다른 유저가 댓글 못 달도록 하기 (댓글 작성자 = 게시글 작성자) userid 일치 ,admin 인지
 @Entity
 @Getter
 @NoArgsConstructor
@@ -29,6 +28,8 @@ public class Comment {
     @Column(name = "comment_id", nullable = false)
     private Long commentId; //댓글아이디
 
+    // 댓글과 게시글 다대일 관계
+    // fetch = FetchType.LAZY : 지연 로딩(성능 최적화를 위해)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inquiry_Id", nullable = false)
     private Board board; // 게시글 아이디 (연관 관계)

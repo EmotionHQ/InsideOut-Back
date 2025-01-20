@@ -1,7 +1,5 @@
 package com.example.Insideout.service;
 
-// 댓글 작성 , 댓글 수정(문의글 답변) , 문의글 답변 삭제
-
 import com.example.Insideout.dto.CommentRequest;
 import com.example.Insideout.dto.CommentResponse;
 import com.example.Insideout.entity.Board;
@@ -15,10 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+// 필터링 :(댓글 작성자 = 게시글 작성자) userid 일치 여부 와 role = admin 인지.
+
 @Service
 public class CommentService {
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
     private final BoardRepository boardRepository;
 
     public CommentService(CommentRepository commentRepository, UserRepository userRepository,
@@ -40,7 +40,7 @@ public class CommentService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        // 권한 확인 (게시글 작성자 또는 관리자만 댓글 작성 가능)
+        // 권한 확인 (게시글 작성자 또는 ADMIN만 댓글 작성 가능)
         if (!board.getUserId().equals(request.getUserId()) && !user.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글을 작성할 권한이 없습니다.");
         }
@@ -61,9 +61,9 @@ public class CommentService {
     }
 
     /*
-    댓글 삭제
+    댓글 삭제(문의글 답변)
     */
-    public void deleteComment(Long commentId, String userId) {
+    public CommentResponse deleteComment(Long commentId, String userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
 
@@ -74,10 +74,12 @@ public class CommentService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다.");
         }
         commentRepository.delete(comment);
+
+        return new CommentResponse("공지 게시글이 성공적으로 삭제되었습니다.");
     }
 
     /*
-    댓글 수정
+    댓글 수정(문의글 답변)
     */
     public CommentResponse updateComment(Long commentId, String userId, String updatedContent) {
         // 댓글 조회
@@ -88,19 +90,19 @@ public class CommentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-        // 권한 확인: 댓글 작성자 또는 관리자만 수정 가능
+        // 권한 확인: 댓글 작성자 또는 ADMIN만 수정 가능
         if (!comment.getUserId().equals(userId) && !user.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");
         }
 
         // 댓글 내용 수정
         comment.setContent(updatedContent);
-        comment.setModifiedTime(LocalDateTime.now()); // 수정 시간을 업데이트
+        comment.setModifiedTime(LocalDateTime.now()); // 수정 시간
 
-        // 수정된 댓글 저장
+        // 수정 댓글 저장
         commentRepository.save(comment);
 
-        // 수정된 댓글 응답 반환
+        // 수정된 댓글  반환
         return new CommentResponse(
                 comment.getCommentId(),
                 comment.getUserId(),
