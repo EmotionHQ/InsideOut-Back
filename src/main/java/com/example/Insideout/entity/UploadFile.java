@@ -17,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "files")
-public class File {
+public class UploadFile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

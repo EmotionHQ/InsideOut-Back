@@ -3,15 +3,17 @@ package com.example.Insideout.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
-public class FileUploadResponse {
+public class UploadFileResponse {
     private Long fileId;
-    private Long inquiryId;
     private String originalName;
-    private String saveName;
     private String filePath;
+    private String message;
+
 }

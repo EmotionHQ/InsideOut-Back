@@ -18,7 +18,8 @@ public class BoardResponse {
     private String message;
 
     // 작성 Dto
-    public BoardResponse(String userId, String title, String content, String message) {
+    public BoardResponse(Long inquiryId, String userId, String title, String content, String message) {
+        this.inquiryId = inquiryId;
         this.userId = userId;
         this.title = title;
         this.content = content;
@@ -42,7 +43,8 @@ public class BoardResponse {
     }
 
     // 상세 조회 Dto
-    public BoardResponse(String userId, String title, String content, LocalDateTime createdTime, LocalDateTime modifiedTime, String message) {
+    public BoardResponse(String userId, String title, String content, LocalDateTime createdTime,
+                         LocalDateTime modifiedTime, String message) {
         this.userId = userId;
         this.title = title;
         this.content = content;

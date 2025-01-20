@@ -4,6 +4,7 @@ package com.example.Insideout.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -12,4 +13,12 @@ public class BoardRequest {
     private String userId;
     private String title;
     private String content;
+    private String filePath; // 파일 경로
+    private MultipartFile imageFile;
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+
 }
