@@ -31,16 +31,19 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inquiry_Id", nullable = false)
-    private Board board; // 게시글 (연관 관계)
+    private Board board; // 게시글 아이디 (연관 관계)
 
     @Column(name = "user_Id", nullable = false)
-    private String userId;
+    private String userId; //유저 아이디
 
     @Column(length = 1000, name = "content", nullable = false)
-    private String content;
+    private String content; //내용
 
     @Column(name = "created_Time")
-    private LocalDateTime createdTime;
+    private LocalDateTime createdTime; //작성 시간
+
+    @Column(name = "modified_Time")
+    private LocalDateTime modifiedTime; // 수정시간
 
     public Comment(String userId, String content, Board board) {
         this.board = board;

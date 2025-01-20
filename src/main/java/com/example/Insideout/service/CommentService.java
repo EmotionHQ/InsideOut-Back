@@ -95,7 +95,7 @@ public class CommentService {
 
         // 댓글 내용 수정
         comment.setContent(updatedContent);
-        comment.setCreatedTime(LocalDateTime.now()); // 수정 시간을 업데이트
+        comment.setModifiedTime(LocalDateTime.now()); // 수정 시간을 업데이트
 
         // 수정된 댓글 저장
         commentRepository.save(comment);
@@ -106,6 +106,7 @@ public class CommentService {
                 comment.getUserId(),
                 comment.getContent(),
                 comment.getCreatedTime(),
+                comment.getModifiedTime(),
                 "댓글이 성공적으로 수정되었습니다."
         );
     }
