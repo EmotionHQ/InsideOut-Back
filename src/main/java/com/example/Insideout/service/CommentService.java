@@ -10,6 +10,7 @@ import com.example.Insideout.entity.User;
 import com.example.Insideout.repository.BoardRepository;
 import com.example.Insideout.repository.CommentRepository;
 import com.example.Insideout.repository.UserRepository;
+import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -74,5 +75,40 @@ public class CommentService {
         }
         commentRepository.delete(comment);
     }
+
+    /*
+    댓글 수정
+    */
+    public CommentResponse updateComment(Long commentId, String userId, String updatedContent) {
+        // 댓글 조회
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
+
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        // 권한 확인: 댓글 작성자 또는 관리자만 수정 가능
+        if (!comment.getUserId().equals(userId) && !user.getRole().equals(User.Role.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");
+        }
+
+        // 댓글 내용 수정
+        comment.setContent(updatedContent);
+        comment.setCreatedTime(LocalDateTime.now()); // 수정 시간을 업데이트
+
+        // 수정된 댓글 저장
+        commentRepository.save(comment);
+
+        // 수정된 댓글 응답 반환
+        return new CommentResponse(
+                comment.getCommentId(),
+                comment.getUserId(),
+                comment.getContent(),
+                comment.getCreatedTime(),
+                "댓글이 성공적으로 수정되었습니다."
+        );
+    }
 }
+
 
