@@ -51,6 +51,21 @@ public class SessionService {
         return new SessionResponse(session.getSessionId(), session.getUserId(), session.getCreatedAt());
     }
 
+    /**
+     * 세션 삭제
+     */
+    @Transactional
+    public void deleteSession(Long sessionId) {
+        Session session = getSession(sessionId);
+
+        // 관련 메시지 먼저 삭제
+        messageRepository.deleteBySession(session);
+
+        // 세션 삭제
+        sessionRepository.delete(session);
+    }
+
+
     /*
     유저 아이디로 세션 정보 조회
      */
