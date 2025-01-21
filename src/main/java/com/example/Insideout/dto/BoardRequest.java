@@ -13,14 +13,4 @@ public class BoardRequest {
     private String title;
     private String content;
 
-    private String filePath;
-
-    public void setFilePathFromUploadedFile(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public String getFilePath() {
-        return this.filePath;
-    }
-
 }
