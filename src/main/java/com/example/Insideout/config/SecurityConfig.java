@@ -41,6 +41,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/**", "/chat/**", "/manage/**").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()   // Swagger 관련 경로 모두 허용
                         .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()
                 )

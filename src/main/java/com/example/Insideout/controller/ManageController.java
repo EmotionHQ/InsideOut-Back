@@ -5,7 +5,6 @@ import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.UserService;
 import java.util.List;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,9 +23,8 @@ public class ManageController {
     }
 
     @GetMapping("/department")
-    public ResponseEntity<List<UserInfoResponse>> getUsersInSameDepartment(@RequestParam String userId) {
-        List<UserInfoResponse> users = userService.getUsersInSameDepartment(userId);
-        return ResponseEntity.ok(users);
+    public List<UserInfoResponse> getUsersInSameDepartment(@RequestParam String userId) {
+        return userService.getUsersInSameDepartment(userId);
     }
 
     @GetMapping("/accepted")
