@@ -1,8 +1,10 @@
 package com.example.Insideout.service;
 
+import com.example.Insideout.dto.DepartmentInfoResponse;
 import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.entity.Department;
 import com.example.Insideout.repository.DepartmentRepository;
+import java.util.List;
 import java.util.Random;
 import org.springframework.stereotype.Service;
 
@@ -66,6 +68,13 @@ public class DepartmentService {
         department.setDepartment(userDto.getDepartment());
 
         departmentRepository.save(department);
+    }
+
+    /**
+     * 부서 정보 + 부서 매니저 이름 반환
+     */
+    public List<DepartmentInfoResponse> getAllDepartmentInfo() {
+        return departmentRepository.findAllDepartmentsWithManagers();
     }
 
 //    public Department saveDepartment(DepartmentDto departmentDto) {
