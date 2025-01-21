@@ -40,10 +40,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/**", "/chat/**").permitAll()
+                        .requestMatchers("/api/**", "/chat/**", "/manage/**").permitAll()
                         .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()
                 )
+                .anonymous(AbstractHttpConfigurer::disable)  // 익명 사용자 허용
                 // 세션 관리 정책: STATELESS
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -58,10 +59,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000", 
-            "https://insideout-front.netlify.app",
-            "http://localhost:8000",  // FastAPI 서버 URL
-            "https://insideout-ai-production.up.railway.app"
+                "http://localhost:3000",
+                "https://insideout-front.netlify.app",
+                "http://localhost:8000",  // FastAPI 서버 URL
+                "https://insideout-ai-production.up.railway.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
