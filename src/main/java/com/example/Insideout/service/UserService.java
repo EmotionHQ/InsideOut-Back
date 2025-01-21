@@ -1,13 +1,9 @@
 package com.example.Insideout.service;
 
 import com.example.Insideout.dto.UserDto;
-import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.entity.User;
-import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -79,30 +75,5 @@ public class UserService implements UserDetailsService {
     public User findByUserId(String userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
-    }
-
-    /**
-     * 부서에 속한 부서원 정보 반환
-     */
-    public List<UserInfoResponse> getUsersInSameDepartment(String userId) {
-
-        User manager = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
-
-        if (manager.getRole() != Role.MANAGER) {
-            throw new IllegalArgumentException("해당 유저는 매니저가 아닙니다.");
-        }
-
-        List<User> usersInDepartment = userRepository.findAllByDeptCode(manager.getDeptCode())
-                .stream()
-                .filter(user -> user.getRole() == Role.USER)
-                .toList();
-
-        return usersInDepartment.stream()
-                .map(u -> new UserInfoResponse(
-                        u.getName(),  // 이름 반환
-                        u.getUserId() // 아이디 반환
-                ))
-                .collect(Collectors.toList());
     }
 }

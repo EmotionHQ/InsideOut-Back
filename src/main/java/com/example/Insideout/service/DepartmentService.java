@@ -2,19 +2,26 @@ package com.example.Insideout.service;
 
 import com.example.Insideout.dto.DepartmentInfoResponse;
 import com.example.Insideout.dto.UserDto;
+import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.entity.Department;
+import com.example.Insideout.entity.User;
+import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.DepartmentRepository;
+import com.example.Insideout.repository.UserRepository;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
 
-    public DepartmentService(DepartmentRepository departmentRepository) {
+    public DepartmentService(DepartmentRepository departmentRepository, UserRepository userRepository) {
         this.departmentRepository = departmentRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -75,6 +82,51 @@ public class DepartmentService {
      */
     public List<DepartmentInfoResponse> getAllDepartmentInfo() {
         return departmentRepository.findAllDepartmentsWithManagers();
+    }
+
+    /**
+     * 부서에 속한 부서원 정보 반환
+     */
+    public List<UserInfoResponse> getUsersInSameDepartment(String userId) {
+
+        User manager = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (manager.getRole() != Role.MANAGER) {
+            throw new IllegalArgumentException("해당 유저는 매니저가 아닙니다.");
+        }
+
+        List<User> usersInDepartment = userRepository.findAllByDeptCode(manager.getDeptCode())
+                .stream()
+                .filter(user -> user.getRole() == Role.USER)
+                .toList();
+
+        return usersInDepartment.stream()
+                .map(u -> new UserInfoResponse(
+                        u.getName(),  // 이름 반환
+                        u.getUserId() // 아이디 반환
+                ))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 부서에 속한 모든 유저 정보 반환
+     */
+    public List<UserInfoResponse> getUsersByDepartmentName(String departmentName) {
+        Department department = departmentRepository.findByDepartment(departmentName)
+                .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다: " + departmentName));
+
+        List<User> users = userRepository.findAllByDeptCode(department.getDeptCode());
+
+        return users.stream()
+                .map(user -> new UserInfoResponse(
+                        user.getName(),
+                        user.getUserId(),
+                        user.getEmail(),
+                        user.getPhoneNumber(),
+                        user.getRole()
+                ))
+                .collect(Collectors.toList());
     }
 
 //    public Department saveDepartment(DepartmentDto departmentDto) {

@@ -27,9 +27,14 @@ public class ManageController {
         this.departmentService = departmentService;
     }
 
-    @GetMapping("/department/users")
+    @GetMapping(value = "/department/users", params = "userId")
     public List<UserInfoResponse> getUsersInSameDepartment(@RequestParam String userId) {
-        return userService.getUsersInSameDepartment(userId);
+        return departmentService.getUsersInSameDepartment(userId);
+    }
+
+    @GetMapping(value = "/department/users", params = "departmentName")
+    public List<UserInfoResponse> getUsersByDepartmentName(@RequestParam String departmentName) {
+        return departmentService.getUsersByDepartmentName(departmentName);
     }
 
     @GetMapping("/accepted")

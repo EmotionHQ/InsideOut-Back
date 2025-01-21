@@ -19,4 +19,6 @@ public interface DepartmentRepository extends JpaRepository<Department, String> 
     @Query("SELECT new com.example.Insideout.dto.DepartmentInfoResponse(d.deptCode, d.department, u.name) " +
             "FROM Department d LEFT JOIN User u ON d.deptCode = u.deptCode AND u.role = 'MANAGER'")
     List<DepartmentInfoResponse> findAllDepartmentsWithManagers();
+
+    Optional<Department> findByDepartment(String departmentName);
 }
