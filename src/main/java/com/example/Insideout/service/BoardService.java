@@ -5,8 +5,10 @@ package com.example.Insideout.service;
 import com.example.Insideout.dto.BoardRequest;
 import com.example.Insideout.dto.BoardResponse;
 import com.example.Insideout.entity.Board;
+import com.example.Insideout.entity.UploadFile;
 import com.example.Insideout.entity.User;
 import com.example.Insideout.repository.BoardRepository;
+import com.example.Insideout.repository.UploadFileRepository;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,13 +26,15 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
     private final UploadFileService uploadFileService;
+    private final UploadFileRepository uploadFileRepository;
 
     public BoardService(BoardRepository boardRepository, UserRepository userRepository,
-                        UploadFileService uploadFileService) {
+                        UploadFileService uploadFileService, UploadFileRepository uploadFileRepository) {
 
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
         this.uploadFileService = uploadFileService;
+        this.uploadFileRepository = uploadFileRepository;
     }
 
     /*
@@ -147,12 +151,16 @@ public class BoardService {
     }
 
     // 공지 게시글 수정
-    public BoardResponse updatePost(BoardRequest request) {
+    @Transactional
+    public BoardResponse updatePost(BoardRequest request, MultipartFile file) {
         Board board = boardRepository.findById(request.getInquiryId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
 
-        if (!board.getUserId().equals(request.getUserId())) {
-            throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        if (!user.getRole().equals(User.Role.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 수정 권한이 없습니다.");
         }
 
         board.setTitle(request.getTitle());
@@ -160,6 +168,17 @@ public class BoardService {
         board.setModifiedTime(LocalDateTime.now());
 
         boardRepository.save(board);
+
+        if (file != null && !file.isEmpty()) {
+            List<UploadFile> existingFiles = uploadFileRepository.findByBoard(board);
+
+            for (UploadFile files : existingFiles) {
+                uploadFileService.deleteUploadedFile(files.getFileId());
+            }
+
+            // 새 파일 업로드 및 저장
+            uploadFileService.uploadFile(file, board);
+        }
 
         return new BoardResponse(
                 board.getUserId(),

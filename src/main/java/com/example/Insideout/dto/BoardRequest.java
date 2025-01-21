@@ -14,3 +14,4 @@ public class BoardRequest {
     private String content;
 
 }
+

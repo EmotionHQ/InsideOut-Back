@@ -115,10 +115,24 @@ public class BoardController {
     // requestBody : 본문에 있는 json 데이터 BoardRequest 객체로 매핑
     @PutMapping("/notice/modify/{inquiryId}")
     public ResponseEntity<BoardResponse> updateBoard(@PathVariable("inquiryId") Long inquiryId,
-                                                     @RequestBody BoardRequest request) {
-        request.setInquiryId(inquiryId);
-        BoardResponse response = boardService.updatePost(request);
-        return ResponseEntity.ok(response);
+                                                     @RequestPart("request") String request,
+                                                     @RequestPart(value = "imagefile", required = false) MultipartFile file) {
+        try {
+            log.info("Raw request: {}", request);
+            BoardRequest boardRequest = objectMapper.readValue(request, BoardRequest.class);
+
+            boardRequest.setInquiryId(inquiryId);
+
+            BoardResponse response = boardService.updatePost(boardRequest, file);
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            log.error("JSON 파싱 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            log.error("예외 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // 공지글 삭제

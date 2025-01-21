@@ -13,11 +13,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 
+@Slf4j
 @Service
 public class UploadFileService {
     private final UploadFileRepository uploadFileRepository;
@@ -35,7 +37,6 @@ public class UploadFileService {
     // 파일 업로드 & 저장
 
     @Transactional
-
     public void uploadFile(MultipartFile multipartFile, Board board) {
 
         try {
@@ -79,5 +80,17 @@ public class UploadFileService {
 
     }
 
+    //     파일 삭제
+    public void deleteUploadedFile(Long fileId) {
+        try {
+            UploadFile uploadFile = uploadFileRepository.findById(fileId)
+                    .orElseThrow(() -> new RuntimeException("파일 조회 실패"));
+            Path filePath = Paths.get(uploadFile.getFilePath());
+            Files.deleteIfExists(filePath);
+            uploadFileRepository.delete(uploadFile);
+        } catch (IOException e) {
+            throw new RuntimeException("파일 삭제 중 오류 발생", e);
+        }
+    }
 
 }
