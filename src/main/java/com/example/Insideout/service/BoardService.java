@@ -11,10 +11,14 @@ import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @Service
 public class BoardService {
     private final BoardRepository boardRepository;
@@ -111,22 +115,33 @@ public class BoardService {
     }
 
     // 작성
-    public BoardResponse createPost(BoardRequest request) {
+    @Transactional
+    public BoardResponse createPost(BoardRequest request, MultipartFile file) {
         Board board = new Board(request);
-
+        board.setUserId(request.getUserId());
+        board.setTitle(request.getTitle());
+        board.setContent(request.getContent());
         board.setCreatedTime(LocalDateTime.now());
-        board.setModifiedTime(LocalDateTime.now());
-        boardRepository.save(board);
+        board.setModifiedTime(null);
 
-        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
-            uploadFileService.uploadFile(request.getImageFile(), board);
+        log.info("Saving board: {}", board);
+
+        Board saveBoard = boardRepository.save(board);
+        log.info("Board saved: {}", saveBoard);
+
+        if (file != null && !file.isEmpty()) {
+            log.info("About to upload file: {}", file.getOriginalFilename()); // 파일 업로드 시작 전 로그
+            uploadFileService.uploadFile(file, saveBoard);
+            log.info("File uploaded successfully."); // 파일 업로드 성공 후 로그
         }
 
         return new BoardResponse(
-                board.getInquiryId(),
-                board.getUserId(),
-                board.getTitle(),
-                board.getContent(),
+                saveBoard.getInquiryId(),
+                saveBoard.getUserId(),
+                saveBoard.getTitle(),
+                saveBoard.getContent(),
+                saveBoard.getCreatedTime(),
+                saveBoard.getModifiedTime(),
                 "게시글이 성공적으로 등록되었습니다."
         );
     }
