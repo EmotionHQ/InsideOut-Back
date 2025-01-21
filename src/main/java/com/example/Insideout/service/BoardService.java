@@ -201,6 +201,14 @@ public class BoardService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 삭제 권한이 없습니다.");
         }
 
+        List<UploadFile> existingFiles = uploadFileRepository.findByBoard(board);
+
+        if (existingFiles != null && !existingFiles.isEmpty()) {
+            for (UploadFile files : existingFiles) {
+                uploadFileService.deleteUploadedFile(files.getFileId());
+            }
+
+        }
         boardRepository.delete(board);
 
         return new BoardResponse("공지 게시글이 성공적으로 삭제되었습니다.");
@@ -214,8 +222,17 @@ public class BoardService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-        if (!board.getUserId().equals(request.getUserId()) && !user.getRole().equals(User.Role.ADMIN)) {
+        if (!board.getUserId().equals(request.getUserId()) || user.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
+        }
+
+        List<UploadFile> existingFiles = uploadFileRepository.findByBoard(board);
+
+        if (existingFiles != null && !existingFiles.isEmpty()) {
+            for (UploadFile files : existingFiles) {
+                uploadFileService.deleteUploadedFile(files.getFileId());
+            }
+
         }
 
         boardRepository.delete(board);

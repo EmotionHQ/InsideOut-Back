@@ -148,4 +148,11 @@ public class BoardController {
         BoardResponse response = boardService.deleteInquiry(request);
         return ResponseEntity.ok(response);
     }
+
+    //파일 삭제
+    @DeleteMapping("/{fileId}")
+    public ResponseEntity<String> deleteFile(@PathVariable Long fileId) {
+        uploadFileService.deleteUploadedFile(fileId);
+        return ResponseEntity.ok("삭제완료");
+    }
 }
