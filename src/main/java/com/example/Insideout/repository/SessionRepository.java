@@ -16,4 +16,8 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     List<SessionInfo> findAllSessionsByUserId(@Param("userId") String userId);
 
     List<Session> findByUserIdAndAgreement(String userId, AgreementType agreement);
+
+    List<Session> findAllByUserId(String userId);
+    
+    void deleteAllByUserId(String userId);
 }
