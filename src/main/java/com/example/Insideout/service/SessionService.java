@@ -3,15 +3,18 @@ package com.example.Insideout.service;
 import com.example.Insideout.dto.MessageRequest;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.SessionCreationRequest;
+import com.example.Insideout.dto.SessionIdResponse;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
 import com.example.Insideout.entity.Message;
 import com.example.Insideout.entity.Message.AuthorType;
 import com.example.Insideout.entity.Session;
+import com.example.Insideout.entity.Session.AgreementType;
 import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,6 +50,21 @@ public class SessionService {
 
         return new SessionResponse(session.getSessionId(), session.getUserId(), session.getCreatedAt());
     }
+
+    /**
+     * 세션 삭제
+     */
+    @Transactional
+    public void deleteSession(Long sessionId) {
+        Session session = getSession(sessionId);
+
+        // 관련 메시지 먼저 삭제
+        messageRepository.deleteBySession(session);
+
+        // 세션 삭제
+        sessionRepository.delete(session);
+    }
+
 
     /*
     유저 아이디로 세션 정보 조회
@@ -124,5 +142,16 @@ public class SessionService {
         messageRepository.save(aiMessage);
 
         return aiResponse;
+    }
+
+    /**
+     * user의 동의 여부 ACCEPTED 세션들 반환
+     */
+    public List<SessionIdResponse> getAcceptedSessionsByUserId(String userId) {
+        List<Session> acceptedSessions = sessionRepository.findByUserIdAndAgreement(userId, AgreementType.ACCEPTED);
+
+        return acceptedSessions.stream()
+                .map(session -> new SessionIdResponse(session.getSessionId()))
+                .collect(Collectors.toList());
     }
 }

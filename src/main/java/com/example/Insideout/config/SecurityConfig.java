@@ -40,10 +40,18 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/**", "/chat/**").permitAll()
+                        .requestMatchers("/api/**", "/chat/**", "/manage/**").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()   // Swagger 관련 경로 모두 허용
                         .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()
                 )
+                .anonymous(AbstractHttpConfigurer::disable)  // 익명 사용자 허용
                 // 세션 관리 정책: STATELESS
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
