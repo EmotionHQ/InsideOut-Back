@@ -4,11 +4,13 @@ package com.example.Insideout.service;
 
 import com.example.Insideout.dto.BoardRequest;
 import com.example.Insideout.dto.BoardResponse;
+import com.example.Insideout.dto.CommentResponse;
 import com.example.Insideout.entity.Board;
 import com.example.Insideout.entity.User;
 import com.example.Insideout.repository.BoardRepository;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
@@ -66,7 +68,6 @@ public class BoardService {
     }
 
 
-
     /*
     문의 게시판 전체 조회
      */
@@ -94,8 +95,20 @@ public class BoardService {
         if (optionalBoard.isEmpty()) {
             throw new IllegalArgumentException("문의게시판에서 글을 찾을 수 없습니다.");
         }
-
+        //문의 게시판 조회시 댓글 같이 조회
         Board board = optionalBoard.get();
+        List<CommentResponse> commentResponses = board.getComments() == null ?
+                Collections.emptyList() :
+                board.getComments().stream()
+                        .map(comment -> new CommentResponse(
+                                comment.getCommentId(),
+                                comment.getUserId(),
+                                comment.getContent(),
+                                comment.getCreatedTime(),
+                                comment.getModifiedTime(),
+                                "댓글 조회 성공"
+                        ))
+                        .toList();
 
         return new BoardResponse(
                 board.getUserId(),
@@ -103,6 +116,7 @@ public class BoardService {
                 board.getContent(),
                 board.getCreatedTime(),
                 board.getModifiedTime(),
+                commentResponses,
                 "문의 게시글 상세조회 성공"
         );
 
@@ -130,7 +144,7 @@ public class BoardService {
         Board board = boardRepository.findById(request.getInquiryId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
 
-        if (!board.getUserId().equals(request.getUserId())){
+        if (!board.getUserId().equals(request.getUserId())) {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
@@ -158,7 +172,7 @@ public class BoardService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
         if (!user.getRole().equals(User.Role.ADMIN)) {
-            throw  new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 삭제 권한이 없습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 삭제 권한이 없습니다.");
         }
 
         boardRepository.delete(board);
@@ -174,9 +188,8 @@ public class BoardService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-
         if (!board.getUserId().equals(request.getUserId()) && !user.getRole().equals(User.Role.ADMIN)) {
-            throw  new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
         }
 
         boardRepository.delete(board);
