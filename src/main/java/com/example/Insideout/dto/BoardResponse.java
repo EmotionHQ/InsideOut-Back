@@ -2,6 +2,7 @@ package com.example.Insideout.dto;
 
 import com.example.Insideout.entity.Board;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,7 @@ public class BoardResponse {
     private LocalDateTime modifiedTime;
     private String message;
     private Board board;
+    private List<String> imageUrls;
 
 
     // 작성 Dto

@@ -76,7 +76,7 @@ public class BoardController {
             throws IOException {
 
         log.info("About to call uploadFileService.uploadFile()");
-        log.info("BoardReques: {}", request);
+        log.info("BoardRequest: {}", request);
         log.info("MultipartFile: {}", file);
         try {
             BoardRequest boardRequest = objectMapper.readValue(request, BoardRequest.class); // BoardRequest 객체로 변환
@@ -94,7 +94,7 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new BoardResponse("데이터 저장 중 오류가 발생했습니다. (데이터 중복 등)"));
         } catch (HttpMessageNotReadableException e) { // RequestBody 파싱 실패 예외 처리
-            log.error("요청 본문 파싱 오류: {}", e.getMessage(), e);
+            log.error("요청 본문 파싱 오 류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new BoardResponse("요청 형식이 올바르지 않습니다. (JSON 파싱 오류 등)"));
         } catch (ConstraintViolationException e) {
@@ -145,6 +145,7 @@ public class BoardController {
     // 문의 게시글 삭제
     @DeleteMapping("/inquiry/delete")
     public ResponseEntity<BoardResponse> deleteInquiry(@RequestBody BoardRequest request) {
+        log.info("Delete Inquiry 요청 데이터: userId={}, inquiryId={}", request.getUserId(), request.getInquiryId());
         BoardResponse response = boardService.deleteInquiry(request);
         return ResponseEntity.ok(response);
     }

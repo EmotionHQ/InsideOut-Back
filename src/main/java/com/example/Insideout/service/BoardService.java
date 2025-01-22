@@ -135,8 +135,14 @@ public class BoardService {
 
         if (file != null && !file.isEmpty()) {
             log.info("About to upload file: {}", file.getOriginalFilename()); // 파일 업로드 시작 전 로그
-            uploadFileService.uploadFile(file, saveBoard);
-            log.info("File uploaded successfully."); // 파일 업로드 성공 후 로그
+            try {
+                uploadFileService.uploadFile(file, saveBoard);
+                log.info("File uploaded successfully."); // 파일 업로드 성공 후 로그
+            } catch (Exception e) {
+                log.error("File upload failed: {}", e.getMessage(), e);
+            }
+
+
         }
 
         return new BoardResponse(
@@ -202,14 +208,18 @@ public class BoardService {
         }
 
         List<UploadFile> existingFiles = uploadFileRepository.findByBoard(board);
-
         if (existingFiles != null && !existingFiles.isEmpty()) {
             for (UploadFile files : existingFiles) {
-                uploadFileService.deleteUploadedFile(files.getFileId());
+                try {
+                    uploadFileService.deleteUploadedFile(files.getFileId());
+                } catch (Exception e) {
+                    log.error("파일 삭제 실패: fileId={}, error={}", files.getFileId(), e.getMessage(), e);
+                }
             }
-
         }
+
         boardRepository.delete(board);
+        log.info("게시글 삭제 완료: inquiryId={}", request.getInquiryId());
 
         return new BoardResponse("공지 게시글이 성공적으로 삭제되었습니다.");
     }
@@ -222,20 +232,23 @@ public class BoardService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-        if (!board.getUserId().equals(request.getUserId()) || user.getRole().equals(User.Role.ADMIN)) {
+        if (!board.getUserId().equals(request.getUserId()) && !user.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
         }
 
         List<UploadFile> existingFiles = uploadFileRepository.findByBoard(board);
-
         if (existingFiles != null && !existingFiles.isEmpty()) {
             for (UploadFile files : existingFiles) {
-                uploadFileService.deleteUploadedFile(files.getFileId());
+                try {
+                    uploadFileService.deleteUploadedFile(files.getFileId());
+                } catch (Exception e) {
+                    log.error("파일 삭제 실패: fileId={}, error={}", files.getFileId(), e.getMessage(), e);
+                }
             }
-
         }
 
         boardRepository.delete(board);
+        log.info("게시글 삭제 완료: inquiryId={}", request.getInquiryId());
 
         return new BoardResponse("게시글이 성공적으로 삭제되었습니다.");
     }
