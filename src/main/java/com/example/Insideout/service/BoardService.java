@@ -100,14 +100,21 @@ public class BoardService {
         List<CommentResponse> commentResponses = board.getComments() == null ?
                 Collections.emptyList() :
                 board.getComments().stream()
-                        .map(comment -> new CommentResponse(
-                                comment.getCommentId(),
-                                comment.getUserId(),
-                                comment.getContent(),
-                                comment.getCreatedTime(),
-                                comment.getModifiedTime(),
-                                "댓글 조회 성공"
-                        ))
+                        .map(comment -> {
+                            // userId를 사용해 User 객체를 조회
+                            User user = userRepository.findById(comment.getUserId())
+                                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+                            return new CommentResponse(
+                                    comment.getCommentId(),
+                                    comment.getUserId(),
+                                    user.getRole().toString(), // 조회된 user 객체에서 role 가져오기
+                                    comment.getContent(),
+                                    comment.getCreatedTime(),
+                                    comment.getModifiedTime(),
+                                    "댓글 조회 성공"
+                            );
+                        })
                         .toList();
 
         return new BoardResponse(
