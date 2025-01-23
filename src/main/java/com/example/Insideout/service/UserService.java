@@ -1,5 +1,6 @@
 package com.example.Insideout.service;
 
+import com.example.Insideout.dto.SrsResponse;
 import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.User;
@@ -9,6 +10,7 @@ import com.example.Insideout.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -104,5 +106,16 @@ public class UserService implements UserDetailsService {
         }
 
         userRepository.deleteByUserId(userId);
+    }
+
+    /**
+     * 유저의 모든 세션 srs 점수 반환
+     */
+    public List<SrsResponse> getSrsByUserId(String userId) {
+        List<Session> sessions = sessionRepository.findAllByUserId(userId);
+
+        return sessions.stream()
+                .map(session -> new SrsResponse(session.getSrsScore(), session.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 }

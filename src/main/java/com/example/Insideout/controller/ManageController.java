@@ -3,13 +3,14 @@ package com.example.Insideout.controller;
 import com.example.Insideout.dto.DepartmentInfoResponse;
 import com.example.Insideout.dto.OrsStatisticsResponse;
 import com.example.Insideout.dto.SessionIdResponse;
+import com.example.Insideout.dto.SrsResponse;
+import com.example.Insideout.dto.SrsStatisticsResponse;
 import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.service.DepartmentService;
 import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.UserService;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,8 +50,18 @@ public class ManageController {
         return departmentService.getAllDepartmentInfo();
     }
 
-    @GetMapping("/statistics/ors/{userId}")
-    public OrsStatisticsResponse getOrsStatistics(@PathVariable String userId) {
+    @GetMapping("/statistics/ors")
+    public OrsStatisticsResponse getOrsStatistics(@RequestParam String userId) {
         return departmentService.getOrsStatisticsByUserId(userId);
+    }
+
+    @GetMapping("/srs")
+    public List<SrsResponse> getUserSessions(@RequestParam String userId) {
+        return userService.getSrsByUserId(userId);
+    }
+
+    @GetMapping("/statistics/srs")
+    public SrsStatisticsResponse getSrsStatistics() {
+        return departmentService.getSrsStatistics();
     }
 }

@@ -3,6 +3,8 @@ package com.example.Insideout.service;
 import com.example.Insideout.dto.DepartmentInfoResponse;
 import com.example.Insideout.dto.OrsStatisticsResponse;
 import com.example.Insideout.dto.OrsStatisticsResponse.OrsStats;
+import com.example.Insideout.dto.SrsStatisticsResponse;
+import com.example.Insideout.dto.SrsStatisticsResponse.SrsStats;
 import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.entity.Department;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -145,33 +148,52 @@ public class DepartmentService {
      * 부서의 ORS 평균,분산 (주간 단위) 반환
      */
     public OrsStatisticsResponse getOrsStatisticsByUserId(String userId) {
-        // 유저 정보 조회 및 부서 코드 가져오기
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
 
         String deptCode = user.getDeptCode();
 
-        // 동일한 부서 코드를 가진 유저들의 ID 조회
         List<User> usersInDepartment = userRepository.findAllByDeptCode(deptCode);
         List<String> userIds = usersInDepartment.stream()
                 .map(User::getUserId)
                 .collect(Collectors.toList());
 
-        // 해당 유저들의 세션 가져오기
         List<Session> sessions = sessionRepository.findAllByUserIdIn(userIds);
 
-        // 주 단위로 그룹화하여 평균 및 분산 계산 (null 값 제외)
-        Map<LocalDate, List<Integer>> weeklyOrsScores = sessions.stream()
-                .filter(session -> session.getOrsScore() != null)
+        Map<LocalDate, OrsStats> weeklyStats = calculateWeeklyStats(sessions, Session::getOrsScore);
+
+        return new OrsStatisticsResponse(weeklyStats);
+    }
+
+    /**
+     * 전체 유저의 SRS 평균, 분산 (주간 단위) 반환
+     */
+    public SrsStatisticsResponse getSrsStatistics() {
+        List<Session> closedSessions = sessionRepository.findAllByIsClosedTrue();
+
+        Map<LocalDate, SrsStats> weeklyStats = calculateWeeklyStats(closedSessions, Session::getSrsScore);
+
+        return new SrsStatisticsResponse(weeklyStats);
+    }
+
+    /**
+     * 주 단위로 그룹화하여 평균 및 분산을 계산
+     */
+    private <T> Map<LocalDate, T> calculateWeeklyStats(
+            List<Session> sessions,
+            Function<Session, Integer> scoreExtractor
+    ) {
+        Map<LocalDate, List<Integer>> weeklyScores = sessions.stream()
+                .filter(session -> scoreExtractor.apply(session) != null)
                 .collect(Collectors.groupingBy(
                         session -> session.getCreatedAt().toLocalDate()
                                 .with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1),
-                        Collectors.mapping(Session::getOrsScore, Collectors.toList())
+                        Collectors.mapping(scoreExtractor, Collectors.toList())
                 ));
 
-        Map<LocalDate, OrsStats> weeklyStats = new HashMap<>();
+        Map<LocalDate, T> weeklyStats = new HashMap<>();
 
-        for (Map.Entry<LocalDate, List<Integer>> entry : weeklyOrsScores.entrySet()) {
+        for (Map.Entry<LocalDate, List<Integer>> entry : weeklyScores.entrySet()) {
             double average = entry.getValue().stream()
                     .mapToInt(Integer::intValue)
                     .average()
@@ -182,22 +204,10 @@ public class DepartmentService {
                     .average()
                     .orElse(0.0);
 
-            weeklyStats.put(entry.getKey(), new OrsStats(average, variance));
+            weeklyStats.put(entry.getKey(), (T) new OrsStats(average, variance));
         }
 
-        return new OrsStatisticsResponse(weeklyStats);
+        return weeklyStats;
     }
-
-//    public Department saveDepartment(DepartmentDto departmentDto) {
-//        Department department = new Department();
-//
-//        department.setDeptCode(departmentDto.getDeptCode());
-//        if (departmentRepository.existsByDepartment(departmentDto.getDepartment())) {
-//            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + departmentDto.getDepartment());
-//        }
-//        department.setDepartment(departmentDto.getDepartment());
-//
-//        return departmentRepository.save(department);
-//    }
 }
 
