@@ -19,7 +19,7 @@ public class BoardResponse {
     private LocalDateTime modifiedTime;
     private String message;
     private Board board;
-    private List<String> imageUrls;
+    private List<String> filePath;
 
 
     // 작성 Dto
@@ -52,12 +52,13 @@ public class BoardResponse {
 
     // 상세 조회 Dto
     public BoardResponse(String userId, String title, String content, LocalDateTime createdTime,
-                         LocalDateTime modifiedTime, String message) {
+                         LocalDateTime modifiedTime, List<String> filePath, String message) {
         this.userId = userId;
         this.title = title;
         this.content = content;
         this.createdTime = createdTime;
         this.modifiedTime = modifiedTime;
+        this.filePath = filePath;
         this.message = message;
     }
 

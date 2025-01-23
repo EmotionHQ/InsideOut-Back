@@ -12,7 +12,6 @@ import com.example.Insideout.repository.UploadFileRepository;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -56,15 +55,16 @@ public class BoardService {
     공지사항 상세 조회
      */
     public BoardResponse getNoticeDetail(Long inquiryId) {
-        Optional<Board> optionalBoard = boardRepository.findNoticeBoards()
+        Board board = boardRepository.findNoticeBoards()
                 .stream()
-                .filter(board -> board.getInquiryId().equals(inquiryId))
-                .findFirst();
+                .filter(b -> b.getInquiryId().equals(inquiryId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("공지사항 게시글을 찾을 수 없습니다."));
 
-        if (optionalBoard.isEmpty()) {
-            throw new IllegalArgumentException("공지사항 게시글을 찾을 수 없습니다.");
-        }
-        Board board = optionalBoard.get();
+        List<String> filePath = uploadFileRepository.findByBoard(board)
+                .stream()
+                .map(UploadFile::getFilePath)
+                .toList();
 
         return new BoardResponse(
                 board.getUserId(),
@@ -72,6 +72,7 @@ public class BoardService {
                 board.getContent(),
                 board.getCreatedTime(),
                 board.getModifiedTime(),
+                filePath,
                 "공지사항 상세조회 성공"
         );
     }
@@ -95,17 +96,26 @@ public class BoardService {
     /*
     문의 상세 조회
      */
-    public BoardResponse getInquiryDetail(Long inquiryId) {
-        Optional<Board> optionalBoard = boardRepository.findInquiryBoards()
+    public BoardResponse getInquiryDetail(BoardRequest request) {
+        Board board = boardRepository.findInquiryBoards()
                 .stream()
-                .filter(board -> board.getInquiryId().equals(inquiryId))
-                .findFirst();
+                .filter(b -> b.getInquiryId().equals(request.getInquiryId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("문의 게시글을 찾을 수 없습니다."));
 
-        if (optionalBoard.isEmpty()) {
-            throw new IllegalArgumentException("문의게시판에서 글을 찾을 수 없습니다.");
+        User requester = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
+
+        log.info("조회 요청 유저: {}, 역할: {}, 유저:{}", request.getUserId(), requester.getRole(), requester);
+        log.info("게시글 작성자: {}", board.getUserId());
+        if (!board.getUserId().equals(request.getUserId()) && !requester.getRole().equals(User.Role.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 조회 권한이 없습니다.");
         }
 
-        Board board = optionalBoard.get();
+        List<String> filePath = uploadFileRepository.findByBoard(board)
+                .stream()
+                .map(UploadFile::getFilePath)
+                .toList();
 
         return new BoardResponse(
                 board.getUserId(),
@@ -113,6 +123,7 @@ public class BoardService {
                 board.getContent(),
                 board.getCreatedTime(),
                 board.getModifiedTime(),
+                filePath,
                 "문의 게시글 상세조회 성공"
         );
 
@@ -162,10 +173,10 @@ public class BoardService {
         Board board = boardRepository.findById(request.getInquiryId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+        User requester = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
 
-        if (!user.getRole().equals(User.Role.ADMIN)) {
+        if (!requester.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 수정 권한이 없습니다.");
         }
 
@@ -178,12 +189,16 @@ public class BoardService {
         if (file != null && !file.isEmpty()) {
             List<UploadFile> existingFiles = uploadFileRepository.findByBoard(board);
 
-            for (UploadFile files : existingFiles) {
-                uploadFileService.deleteUploadedFile(files.getFileId());
+            if (existingFiles != null && !existingFiles.isEmpty()) {
+                for (UploadFile files : existingFiles) {
+                    uploadFileService.deleteUploadedFile(files.getFileId());
+                }
+            } else {
+                log.info("기존 파일이 없습니다.");
             }
-
             // 새 파일 업로드 및 저장
             uploadFileService.uploadFile(file, board);
+            log.info("File upload Successful");
         }
 
         return new BoardResponse(
@@ -200,10 +215,10 @@ public class BoardService {
         Board board = boardRepository.findById(request.getInquiryId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+        User requester = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
 
-        if (!user.getRole().equals(User.Role.ADMIN)) {
+        if (!requester.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 삭제 권한이 없습니다.");
         }
 
@@ -229,10 +244,12 @@ public class BoardService {
         Board board = boardRepository.findById(request.getInquiryId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+        User requester = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
 
-        if (!board.getUserId().equals(request.getUserId()) && !user.getRole().equals(User.Role.ADMIN)) {
+        log.info("삭제 요청 유저: {}, 역할: {}, 유저:{}", request.getUserId(), requester.getRole(), requester);
+        log.info("게시글 작성자: {}", board.getUserId());
+        if (!board.getUserId().equals(request.getUserId()) && !requester.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
         }
 

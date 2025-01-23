@@ -64,8 +64,8 @@ public class BoardController {
 
     // 문의 게시판 상세 조회
     @GetMapping("/inquiry/{inquiryId}")
-    private ResponseEntity<BoardResponse> getInquiryDetail(@PathVariable Long inquiryId) {
-        BoardResponse response = boardService.getInquiryDetail(inquiryId);
+    private ResponseEntity<BoardResponse> getInquiryDetail(@RequestBody BoardRequest request) {
+        BoardResponse response = boardService.getInquiryDetail(request);
         return ResponseEntity.ok(response);
     }
 
@@ -113,7 +113,7 @@ public class BoardController {
     // 수정
     // pathVariable : url 경로에서 inquiryId 값 추출해서 inquiryId 변수에 매핑하는 역할
     // requestBody : 본문에 있는 json 데이터 BoardRequest 객체로 매핑
-    @PutMapping("/notice/modify/{inquiryId}")
+    @PutMapping("/modify/{inquiryId}")
     public ResponseEntity<BoardResponse> updateBoard(@PathVariable("inquiryId") Long inquiryId,
                                                      @RequestPart("request") String request,
                                                      @RequestPart(value = "imagefile", required = false) MultipartFile file) {
