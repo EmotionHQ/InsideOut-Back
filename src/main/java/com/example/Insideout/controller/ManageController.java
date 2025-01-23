@@ -1,6 +1,7 @@
 package com.example.Insideout.controller;
 
 import com.example.Insideout.dto.DepartmentInfoResponse;
+import com.example.Insideout.dto.OrsStatisticsResponse;
 import com.example.Insideout.dto.SessionIdResponse;
 import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.service.DepartmentService;
@@ -8,6 +9,7 @@ import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.UserService;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,5 +47,10 @@ public class ManageController {
     @GetMapping("/departments")
     public List<DepartmentInfoResponse> getAllDepartmentsInfo() {
         return departmentService.getAllDepartmentInfo();
+    }
+
+    @GetMapping("/statistics/ors/{userId}")
+    public OrsStatisticsResponse getOrsStatistics(@PathVariable String userId) {
+        return departmentService.getOrsStatisticsByUserId(userId);
     }
 }
