@@ -106,8 +106,6 @@ public class BoardService {
         User requester = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
 
-        log.info("조회 요청 유저: {}, 역할: {}, 유저:{}", request.getUserId(), requester.getRole(), requester);
-        log.info("게시글 작성자: {}", board.getUserId());
         if (!board.getUserId().equals(request.getUserId()) && !requester.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 조회 권한이 없습니다.");
         }
@@ -139,16 +137,11 @@ public class BoardService {
         board.setCreatedTime(LocalDateTime.now());
         board.setModifiedTime(null);
 
-        log.info("Saving board: {}", board);
-
         Board saveBoard = boardRepository.save(board);
-        log.info("Board saved: {}", saveBoard);
 
         if (file != null && !file.isEmpty()) {
-            log.info("About to upload file: {}", file.getOriginalFilename()); // 파일 업로드 시작 전 로그
             try {
                 uploadFileService.uploadFile(file, saveBoard);
-                log.info("File uploaded successfully."); // 파일 업로드 성공 후 로그
             } catch (Exception e) {
                 log.error("File upload failed: {}", e.getMessage(), e);
             }
@@ -194,11 +187,9 @@ public class BoardService {
                     uploadFileService.deleteUploadedFile(files.getFileId());
                 }
             } else {
-                log.info("기존 파일이 없습니다.");
             }
             // 새 파일 업로드 및 저장
             uploadFileService.uploadFile(file, board);
-            log.info("File upload Successful");
         }
 
         return new BoardResponse(
@@ -234,7 +225,6 @@ public class BoardService {
         }
 
         boardRepository.delete(board);
-        log.info("게시글 삭제 완료: inquiryId={}", request.getInquiryId());
 
         return new BoardResponse("공지 게시글이 성공적으로 삭제되었습니다.");
     }
@@ -247,8 +237,6 @@ public class BoardService {
         User requester = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
 
-        log.info("삭제 요청 유저: {}, 역할: {}, 유저:{}", request.getUserId(), requester.getRole(), requester);
-        log.info("게시글 작성자: {}", board.getUserId());
         if (!board.getUserId().equals(request.getUserId()) && !requester.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
         }
@@ -265,7 +253,6 @@ public class BoardService {
         }
 
         boardRepository.delete(board);
-        log.info("게시글 삭제 완료: inquiryId={}", request.getInquiryId());
 
         return new BoardResponse("게시글이 성공적으로 삭제되었습니다.");
     }
