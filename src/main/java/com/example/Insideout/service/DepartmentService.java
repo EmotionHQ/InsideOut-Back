@@ -1,19 +1,27 @@
 package com.example.Insideout.service;
 
-import com.example.Insideout.dto.DepartmentDto;
+import com.example.Insideout.dto.DepartmentInfoResponse;
 import com.example.Insideout.dto.UserDto;
+import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.entity.Department;
+import com.example.Insideout.entity.User;
+import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.DepartmentRepository;
+import com.example.Insideout.repository.UserRepository;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
 
-    public DepartmentService(DepartmentRepository departmentRepository) {
+    public DepartmentService(DepartmentRepository departmentRepository, UserRepository userRepository) {
         this.departmentRepository = departmentRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -55,32 +63,82 @@ public class DepartmentService {
     }
 
     /**
-     * 부서장 회원 가입 시 부서 저장 (부서코드, 부서명)
+     * 부서장 회원 가입 시 부서 저장 (부서 코드, 부서명)
      */
     public void saveDepartmentFromUserDto(UserDto userDto) {
-        //DepartmentDto departmentDto = new DepartmentDto();
         Department department = new Department();
 
-        //departmentDto.setDeptCode(userDto.getDeptCode());
-        //departmentDto.setDepartment(userDto.getDepartment());
+        if (departmentRepository.existsByDepartment(userDto.getDepartment())) {
+            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + userDto.getDepartment());
+        }
         department.setDeptCode(userDto.getDeptCode());
         department.setDepartment(userDto.getDepartment());
 
         departmentRepository.save(department);
-        //return saveDepartment(departmentDto);
     }
 
+    /**
+     * 부서 정보 + 부서 매니저 이름 반환
+     */
+    public List<DepartmentInfoResponse> getAllDepartmentInfo() {
+        return departmentRepository.findAllDepartmentsWithManagers();
+    }
 
-    public Department saveDepartment(DepartmentDto departmentDto) {
-        Department department = new Department();
+    /**
+     * 부서에 속한 부서원 정보 반환
+     */
+    public List<UserInfoResponse> getUsersInSameDepartment(String userId) {
 
-        department.setDeptCode(departmentDto.getDeptCode());
-        if (departmentRepository.existsByDepartment(departmentDto.getDepartment())) {
-            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + departmentDto.getDepartment());
+        User manager = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (manager.getRole() != Role.MANAGER) {
+            throw new IllegalArgumentException("해당 유저는 매니저가 아닙니다.");
         }
-        department.setDepartment(departmentDto.getDepartment());
 
-        return departmentRepository.save(department);
+        List<User> usersInDepartment = userRepository.findAllByDeptCode(manager.getDeptCode())
+                .stream()
+                .filter(user -> user.getRole() == Role.USER)
+                .toList();
+
+        return usersInDepartment.stream()
+                .map(u -> new UserInfoResponse(
+                        u.getName(),  // 이름 반환
+                        u.getUserId() // 아이디 반환
+                ))
+                .collect(Collectors.toList());
     }
+
+    /**
+     * 부서에 속한 모든 유저 정보 반환
+     */
+    public List<UserInfoResponse> getUsersByDepartmentName(String departmentName) {
+        Department department = departmentRepository.findByDepartment(departmentName)
+                .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다: " + departmentName));
+
+        List<User> users = userRepository.findAllByDeptCode(department.getDeptCode());
+
+        return users.stream()
+                .map(user -> new UserInfoResponse(
+                        user.getName(),
+                        user.getUserId(),
+                        user.getEmail(),
+                        user.getPhoneNumber(),
+                        user.getRole()
+                ))
+                .collect(Collectors.toList());
+    }
+
+//    public Department saveDepartment(DepartmentDto departmentDto) {
+//        Department department = new Department();
+//
+//        department.setDeptCode(departmentDto.getDeptCode());
+//        if (departmentRepository.existsByDepartment(departmentDto.getDepartment())) {
+//            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + departmentDto.getDepartment());
+//        }
+//        department.setDepartment(departmentDto.getDepartment());
+//
+//        return departmentRepository.save(department);
+//    }
 }
 
