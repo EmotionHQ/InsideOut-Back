@@ -60,7 +60,8 @@ public class BoardResponse {
 
     //게시 상세 조회 Dto + 댓글 상세 조회 dto 추가
     public BoardResponse(String userId, String title, String content, LocalDateTime createdTime,
-                         LocalDateTime modifiedTime, List<CommentResponse> comments, List<String> filePath, String message) {
+                         LocalDateTime modifiedTime, List<CommentResponse> comments, List<String> filePath,
+                         String message) {
         this.userId = userId;
         this.title = title;
         this.content = content;
@@ -73,15 +74,16 @@ public class BoardResponse {
 
     //공지 상세조회 dto
     public BoardResponse(String userId, String title, String content, LocalDateTime createdTime,
-                         LocalDateTime modifiedTime, String message) {
+                         LocalDateTime modifiedTime, List<String> filePath, String message) {
         this.userId = userId;
         this.title = title;
         this.content = content;
         this.createdTime = createdTime;
         this.modifiedTime = modifiedTime;
+        this.filePath = filePath;
         this.message = message;
     }
-  
+
     public Board getBoard() {
         return board;
     }

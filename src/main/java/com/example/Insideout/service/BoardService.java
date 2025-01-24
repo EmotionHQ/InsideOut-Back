@@ -120,7 +120,7 @@ public class BoardService {
                 .toList();
 
         //문의 게시판 조회시 댓글 같이 조회
-        Board board = optionalBoard.get();
+        //Board board = optionalBoard.get();
         List<CommentResponse> commentResponses = board.getComments() == null ?
                 Collections.emptyList() :
                 board.getComments().stream()
@@ -147,8 +147,8 @@ public class BoardService {
                 board.getContent(),
                 board.getCreatedTime(),
                 board.getModifiedTime(),
-                filePath,
                 commentResponses,
+                filePath,
                 "문의 게시글 상세조회 성공"
         );
 
@@ -198,6 +198,7 @@ public class BoardService {
 
         if (!requester.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 수정 권한이 없습니다.");
+        }
         if (!board.getUserId().equals(request.getUserId())) {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
