@@ -16,4 +16,5 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role IN ('USER','MANAGER')")
     List<Board> findInquiryBoards();
+
 }

@@ -4,6 +4,7 @@ package com.example.Insideout.service;
 
 import com.example.Insideout.dto.BoardRequest;
 import com.example.Insideout.dto.BoardResponse;
+import com.example.Insideout.dto.CommentResponse;
 import com.example.Insideout.entity.Board;
 import com.example.Insideout.entity.UploadFile;
 import com.example.Insideout.entity.User;
@@ -11,6 +12,7 @@ import com.example.Insideout.repository.BoardRepository;
 import com.example.Insideout.repository.UploadFileRepository;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -44,6 +46,7 @@ public class BoardService {
 
         return boards.stream()
                 .map(board -> new BoardResponse(
+                        board.getInquiryId(),
                         board.getUserId(),
                         board.getTitle(),
                         "공지사항 전체 조회 성공"
@@ -86,6 +89,7 @@ public class BoardService {
 
         return boards.stream()
                 .map(board -> new BoardResponse(
+                        board.getInquiryId(),
                         board.getUserId(),
                         board.getTitle(),
                         "문의게시판 전체 조회 성공"
@@ -115,6 +119,28 @@ public class BoardService {
                 .map(UploadFile::getFilePath)
                 .toList();
 
+        //문의 게시판 조회시 댓글 같이 조회
+        Board board = optionalBoard.get();
+        List<CommentResponse> commentResponses = board.getComments() == null ?
+                Collections.emptyList() :
+                board.getComments().stream()
+                        .map(comment -> {
+                            // userId를 사용해 User 객체를 조회
+                            User user = userRepository.findById(comment.getUserId())
+                                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+                            return new CommentResponse(
+                                    comment.getCommentId(),
+                                    comment.getUserId(),
+                                    user.getRole().toString(), // 조회된 user 객체에서 role 가져오기
+                                    comment.getContent(),
+                                    comment.getCreatedTime(),
+                                    comment.getModifiedTime(),
+                                    "댓글 조회 성공"
+                            );
+                        })
+                        .toList();
+
         return new BoardResponse(
                 board.getUserId(),
                 board.getTitle(),
@@ -122,6 +148,7 @@ public class BoardService {
                 board.getCreatedTime(),
                 board.getModifiedTime(),
                 filePath,
+                commentResponses,
                 "문의 게시글 상세조회 성공"
         );
 
@@ -171,6 +198,8 @@ public class BoardService {
 
         if (!requester.getRole().equals(User.Role.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지글 수정 권한이 없습니다.");
+        if (!board.getUserId().equals(request.getUserId())) {
+            throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
         board.setTitle(request.getTitle());

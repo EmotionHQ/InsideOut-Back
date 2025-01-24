@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +41,12 @@ public class UserController {
                     Map.of("error", "사용자 등록 중 문제가 발생했습니다.")
             );
         }
+    }
+
+    @DeleteMapping("/{userId}/delete")
+    public ResponseEntity<String> deleteUser(@PathVariable String userId) {
+        userService.deleteUserById(userId);
+        return ResponseEntity.ok("유저 삭제 완료");
     }
 }
 
