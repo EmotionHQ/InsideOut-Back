@@ -36,6 +36,7 @@ public class BoardService {
 
         return boards.stream()
                 .map(board -> new BoardResponse(
+                        board.getInquiryId(),
                         board.getUserId(),
                         board.getTitle(),
                         "공지사항 전체 조회 성공"
@@ -76,6 +77,7 @@ public class BoardService {
 
         return boards.stream()
                 .map(board -> new BoardResponse(
+                        board.getInquiryId(),
                         board.getUserId(),
                         board.getTitle(),
                         "문의게시판 전체 조회 성공"

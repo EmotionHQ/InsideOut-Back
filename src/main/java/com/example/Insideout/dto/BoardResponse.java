@@ -39,7 +39,8 @@ public class BoardResponse {
     }
 
     // 전체 조회 Dto
-    public BoardResponse(String userId, String title, String message) {
+    public BoardResponse(Long inquiryId, String userId, String title, String message) {
+        this.inquiryId = inquiryId;
         this.userId = userId;
         this.title = title;
         this.message = message;

@@ -1,5 +1,6 @@
 package com.example.Insideout.controller;
 
+import com.example.Insideout.dto.MessageRequest;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.ORSRequest;
 import com.example.Insideout.dto.SessionCreationRequest;
@@ -9,6 +10,7 @@ import com.example.Insideout.dto.SessionResponse;
 import com.example.Insideout.service.SessionService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +35,13 @@ public class SessionController {
         return sessionService.createNewSession(requestDTO);
     }
 
+    @DeleteMapping("/session/{sessionId}/delete")
+    public ResponseEntity<String> deleteSession(@PathVariable Long sessionId) {
+        sessionService.deleteSession(sessionId);
+        return ResponseEntity.ok("Session deleted successfully.");
+    }
+
+
     @GetMapping("/sessions")
     public List<SessionInfo> getUserSessions(@RequestParam String userId) {
         return sessionService.getSessionsByUserId(userId);
@@ -53,5 +62,13 @@ public class SessionController {
     public ResponseEntity<String> updateSessionDetails(@RequestBody SessionEndRequest request) {
         sessionService.endSession(request.getSessionId(), request.getSrsScore(), request.getAgreement());
         return ResponseEntity.ok("Session details updated successfully.");
+    }
+
+    /**
+     * 프론트 입력 메세지 DB저장 -> fast API로 전달 -> 반환값 DB저장 -> 프론트로 반환
+     */
+    @PostMapping("/send")
+    public MessageResponse sendMessage(@RequestBody MessageRequest messageRequest) {
+        return sessionService.processMessage(messageRequest);
     }
 }
