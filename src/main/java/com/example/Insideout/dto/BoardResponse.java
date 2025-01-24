@@ -1,6 +1,8 @@
 package com.example.Insideout.dto;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +18,7 @@ public class BoardResponse {
     private LocalDateTime createdTime;
     private LocalDateTime modifiedTime;
     private String message;
+    private List<CommentResponse> comments; // 게시물 불러 올때 댓글 불러오기(리스트 형태로)
 
     // 작성 Dto
     public BoardResponse(String userId, String title, String content, String message) {
@@ -23,6 +26,7 @@ public class BoardResponse {
         this.title = title;
         this.content = content;
         this.message = message;
+
     }
 
     // 수정 Dto
@@ -42,7 +46,24 @@ public class BoardResponse {
         this.message = message;
     }
 
-    // 상세 조회 Dto
+    // 삭제 Dto
+    public BoardResponse(String message) {
+        this.message = message;
+    }
+
+    //게시 상세 조회 Dto + 댓글 상세 조회 dto 추가
+    public BoardResponse(String userId, String title, String content, LocalDateTime createdTime,
+                         LocalDateTime modifiedTime, List<CommentResponse> comments, String message) {
+        this.userId = userId;
+        this.title = title;
+        this.content = content;
+        this.createdTime = createdTime;
+        this.modifiedTime = modifiedTime;
+        this.comments = comments != null ? comments : Collections.emptyList(); // 댓글 리스트 처리
+        this.message = message;
+    }
+
+    //공지 상세조회 dto
     public BoardResponse(String userId, String title, String content, LocalDateTime createdTime,
                          LocalDateTime modifiedTime, String message) {
         this.userId = userId;
@@ -51,13 +72,8 @@ public class BoardResponse {
         this.createdTime = createdTime;
         this.modifiedTime = modifiedTime;
         this.message = message;
-    }
 
-    // 삭제 Dto
-    public BoardResponse(String message) {
-        this.message = message;
     }
-
 }
 
 

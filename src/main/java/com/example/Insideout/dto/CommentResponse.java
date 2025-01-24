@@ -9,6 +9,7 @@ import lombok.Setter;
 public class CommentResponse {
     private Long commentId;
     private String userId;
+    private String role; //유저 역할
     private String content;
     private LocalDateTime createdTime;
     private LocalDateTime modifiedTime;
@@ -16,10 +17,11 @@ public class CommentResponse {
 
 
     // 댓글 수정
-    public CommentResponse(Long commentId, String userId, String content, LocalDateTime createdTime,
+    public CommentResponse(Long commentId, String userId, String role, String content, LocalDateTime createdTime,
                            LocalDateTime modifiedTime, String message) {
         this.commentId = commentId;
         this.userId = userId;
+        this.role = role;
         this.content = content;
         this.createdTime = createdTime;
         this.modifiedTime = modifiedTime;
@@ -32,9 +34,11 @@ public class CommentResponse {
     }
 
     // 댓글 작성
-    public CommentResponse(Long commentId, String userId, String content, LocalDateTime createdTime, String message) {
+    public CommentResponse(Long commentId, String userId, String role, String content, LocalDateTime createdTime,
+                           String message) {
         this.commentId = commentId;
         this.userId = userId;
+        this.role = role;
         this.content = content;
         this.createdTime = createdTime;
         this.message = message;
