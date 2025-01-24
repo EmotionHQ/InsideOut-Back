@@ -6,6 +6,7 @@ import com.example.Insideout.dto.SessionCreationRequest;
 import com.example.Insideout.dto.SessionIdResponse;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
+import com.example.Insideout.dto.SessionSummaryResponse;
 import com.example.Insideout.entity.Message;
 import com.example.Insideout.entity.Message.AuthorType;
 import com.example.Insideout.entity.Session;
@@ -153,5 +154,22 @@ public class SessionService {
         return acceptedSessions.stream()
                 .map(session -> new SessionIdResponse(session.getSessionId()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 세션의 요약, 개선 사항, 상태 저장
+     */
+    @Transactional
+    public void SummarizeAndUpdateSession(Long sessionId) {
+        SessionSummaryResponse response = fastApiClient.getSessionSummary(sessionId);
+
+        Session session = sessionRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다: " + sessionId));
+
+        session.setSummary(response.getSummary());
+        session.setStatus(Session.Status.valueOf(response.getStatus())); // RISK or STABLE
+        session.setFeedback(response.getFeedback());
+
+        sessionRepository.save(session);
     }
 }
