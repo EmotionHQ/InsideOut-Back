@@ -1,5 +1,6 @@
 package com.example.Insideout.dto;
 
+import com.example.Insideout.entity.Board;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -18,13 +19,19 @@ public class BoardResponse {
     private LocalDateTime createdTime;
     private LocalDateTime modifiedTime;
     private String message;
+    private Board board;
+    private List<String> filePath;
     private List<CommentResponse> comments; // 게시물 불러 올때 댓글 불러오기(리스트 형태로)
 
     // 작성 Dto
-    public BoardResponse(String userId, String title, String content, String message) {
+    public BoardResponse(Long inquiryId, String userId, String title, String content,
+                         LocalDateTime createdTime, LocalDateTime modifiedTime, String message) {
+        this.inquiryId = inquiryId;
         this.userId = userId;
         this.title = title;
         this.content = content;
+        this.createdTime = createdTime;
+        this.modifiedTime = modifiedTime;
         this.message = message;
 
     }
@@ -53,12 +60,13 @@ public class BoardResponse {
 
     //게시 상세 조회 Dto + 댓글 상세 조회 dto 추가
     public BoardResponse(String userId, String title, String content, LocalDateTime createdTime,
-                         LocalDateTime modifiedTime, List<CommentResponse> comments, String message) {
+                         LocalDateTime modifiedTime, List<CommentResponse> comments, List<String> filePath, String message) {
         this.userId = userId;
         this.title = title;
         this.content = content;
         this.createdTime = createdTime;
         this.modifiedTime = modifiedTime;
+        this.filePath = filePath;
         this.comments = comments != null ? comments : Collections.emptyList(); // 댓글 리스트 처리
         this.message = message;
     }
@@ -72,7 +80,10 @@ public class BoardResponse {
         this.createdTime = createdTime;
         this.modifiedTime = modifiedTime;
         this.message = message;
-
+    }
+  
+    public Board getBoard() {
+        return board;
     }
 }
 
