@@ -53,6 +53,7 @@ public class CommentService {
         return new CommentResponse(
                 comment.getCommentId(),
                 comment.getUserId(),
+                user.getRole().toString(),
                 comment.getContent(),
                 comment.getCreatedTime(),
                 "댓글 작성 완료"
@@ -106,6 +107,7 @@ public class CommentService {
         return new CommentResponse(
                 comment.getCommentId(),
                 comment.getUserId(),
+                user.getRole().toString(),
                 comment.getContent(),
                 comment.getCreatedTime(),
                 comment.getModifiedTime(),

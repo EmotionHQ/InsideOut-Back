@@ -2,6 +2,7 @@ package com.example.Insideout.service;
 
 import com.example.Insideout.dto.SrsResponse;
 import com.example.Insideout.dto.UserDto;
+import com.example.Insideout.dto.UserUpdateDto;
 import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.User;
 import com.example.Insideout.repository.MessageRepository;
@@ -87,6 +88,32 @@ public class UserService implements UserDetailsService {
     public User findByUserId(String userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+    }
+
+    public boolean verifyPassword(String userId, String password) {
+        User user = findByUserId(userId);
+        return passwordEncoder.matches(password, user.getPasswordHash());
+    }
+
+    public User updateUser(String userId, UserUpdateDto updateDto) {
+        User user = findByUserId(userId);
+
+        if (updateDto.getNewPassword() != null) {
+            user.setPasswordHash(passwordEncoder.encode(updateDto.getNewPassword()));
+        }
+        if (updateDto.getEmail() != null) {
+            user.setEmail(updateDto.getEmail());
+        }
+        if (updateDto.getPhoneNumber() != null) {
+            user.setPhoneNumber(updateDto.getPhoneNumber());
+        }
+        if (updateDto.getDeptCode() != null && user.getRole() == User.Role.USER) {
+            //String departmentName = departmentService.findDepartmentByDeptCode(updateDto.getDeptCode());
+            user.setDeptCode(updateDto.getDeptCode());
+            //user.setDepartment(departmentName);
+        }
+
+        return userRepository.save(user);
     }
 
     /**
