@@ -64,8 +64,8 @@ public class BoardController {
 
     // 문의 게시판 상세 조회
     @GetMapping("/inquiry/{inquiryId}")
-    private ResponseEntity<BoardResponse> getInquiryDetail(@RequestBody BoardRequest request) {
-        BoardResponse response = boardService.getInquiryDetail(request);
+    private ResponseEntity<BoardResponse> getInquiryDetail(@PathVariable Long inquiryId) {
+        BoardResponse response = boardService.getInquiryDetail(inquiryId);
         return ResponseEntity.ok(response);
     }
 

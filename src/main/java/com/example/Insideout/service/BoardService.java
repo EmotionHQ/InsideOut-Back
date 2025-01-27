@@ -100,19 +100,19 @@ public class BoardService {
     /*
     문의 상세 조회
      */
-    public BoardResponse getInquiryDetail(BoardRequest request) {
+    public BoardResponse getInquiryDetail(Long inquiryId) {
         Board board = boardRepository.findInquiryBoards()
                 .stream()
-                .filter(b -> b.getInquiryId().equals(request.getInquiryId()))
+                .filter(b -> b.getInquiryId().equals(inquiryId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("문의 게시글을 찾을 수 없습니다."));
 
-        User requester = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
-
-        if (!board.getUserId().equals(request.getUserId()) && !requester.getRole().equals(User.Role.ADMIN)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 조회 권한이 없습니다.");
-        }
+//        User requester = userRepository.findById(request.getUserId())
+//                .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
+//
+//        if (!board.getUserId().equals(request.getUserId()) && !requester.getRole().equals(User.Role.ADMIN)) {
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 조회 권한이 없습니다.");
+//        }
 
         List<String> filePath = uploadFileRepository.findByBoard(board)
                 .stream()
