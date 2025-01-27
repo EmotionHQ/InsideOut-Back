@@ -35,10 +35,10 @@ public class Session {
     private Integer srsScore;
 
     @Enumerated(EnumType.STRING)
-    private Status status;  // New enum field
+    private Status status;
 
     @Column(length = 255)
-    private String feedback;  // New nullable column
+    private String feedback;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

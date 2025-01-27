@@ -1,13 +1,16 @@
 package com.example.Insideout.controller;
 
+import com.example.Insideout.dto.SessionSummaryResponse;
 import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.entity.User;
+import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.UserService;
 import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final SessionService sessionService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, SessionService sessionService) {
         this.userService = userService;
+        this.sessionService = sessionService;
     }
 
     @PostMapping("/register")
@@ -47,6 +52,14 @@ public class UserController {
     public ResponseEntity<String> deleteUser(@PathVariable String userId) {
         userService.deleteUserById(userId);
         return ResponseEntity.ok("유저 삭제 완료");
+    }
+
+    /**
+     * 요약, 개선 사항, 상태 반환
+     */
+    @GetMapping("/summary/{sessionId}")
+    public SessionSummaryResponse getSessionSummary(@PathVariable Long sessionId) {
+        return sessionService.getSessionDetails(sessionId);
     }
 }
 

@@ -167,9 +167,23 @@ public class SessionService {
                 .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다: " + sessionId));
 
         session.setSummary(response.getSummary());
-        session.setStatus(Session.Status.valueOf(response.getStatus())); // RISK or STABLE
+        session.setStatus(response.getStatus()); // RISK or STABLE
         session.setFeedback(response.getFeedback());
 
         sessionRepository.save(session);
+    }
+
+    /**
+     * 조회된 세션의 요약, 개선 사항, 상태 반환
+     */
+    public SessionSummaryResponse getSessionDetails(Long sessionId) {
+        Session session = sessionRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 세션을 찾을 수 없습니다: " + sessionId));
+
+        return new SessionSummaryResponse(
+                session.getSummary(),
+                session.getStatus(),
+                session.getFeedback()
+        );
     }
 }
