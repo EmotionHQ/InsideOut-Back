@@ -35,6 +35,12 @@ public class Session {
     private Integer srsScore;
 
     @Enumerated(EnumType.STRING)
+    private Status status;
+
+    @Column(length = 255)
+    private String feedback;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AgreementType agreement = AgreementType.DENIED;
 
@@ -42,5 +48,9 @@ public class Session {
 
     public enum AgreementType {
         ACCEPTED, DENIED
+    }
+
+    public enum Status {
+        RISK, STABLE
     }
 }

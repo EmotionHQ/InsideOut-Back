@@ -58,9 +58,13 @@ public class SessionController {
         return ResponseEntity.ok("ORS score updated successfully.");
     }
 
+    /**
+     * 세션 종료 srs점수, 동의 여부 업데이트 세션 상담 내용 요약 및 저장 (fast API 연결)
+     */
     @PutMapping("/session/terminate")
     public ResponseEntity<String> updateSessionDetails(@RequestBody SessionEndRequest request) {
         sessionService.endSession(request.getSessionId(), request.getSrsScore(), request.getAgreement());
+        sessionService.SummarizeAndUpdateSession(request.getSessionId());
         return ResponseEntity.ok("Session details updated successfully.");
     }
 

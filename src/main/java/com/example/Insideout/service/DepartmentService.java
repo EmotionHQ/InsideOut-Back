@@ -1,15 +1,27 @@
 package com.example.Insideout.service;
 
 import com.example.Insideout.dto.DepartmentInfoResponse;
+import com.example.Insideout.dto.OrsStatisticsResponse;
+import com.example.Insideout.dto.OrsStatisticsResponse.OrsStats;
+import com.example.Insideout.dto.SrsStatisticsResponse;
+import com.example.Insideout.dto.SrsStatisticsResponse.SrsStats;
 import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.entity.Department;
+import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.User;
 import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.DepartmentRepository;
+import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +30,13 @@ public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
+    private final SessionRepository sessionRepository;
 
-    public DepartmentService(DepartmentRepository departmentRepository, UserRepository userRepository) {
+    public DepartmentService(DepartmentRepository departmentRepository, UserRepository userRepository,
+                             SessionRepository sessionRepository) {
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
     }
 
     /**
@@ -129,16 +144,70 @@ public class DepartmentService {
                 .collect(Collectors.toList());
     }
 
-//    public Department saveDepartment(DepartmentDto departmentDto) {
-//        Department department = new Department();
-//
-//        department.setDeptCode(departmentDto.getDeptCode());
-//        if (departmentRepository.existsByDepartment(departmentDto.getDepartment())) {
-//            throw new IllegalArgumentException("해당 부서가 이미 존재합니다: " + departmentDto.getDepartment());
-//        }
-//        department.setDepartment(departmentDto.getDepartment());
-//
-//        return departmentRepository.save(department);
-//    }
+    /**
+     * 부서의 ORS 평균,분산 (주간 단위) 반환
+     */
+    public OrsStatisticsResponse getOrsStatisticsByUserId(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        String deptCode = user.getDeptCode();
+
+        List<User> usersInDepartment = userRepository.findAllByDeptCode(deptCode);
+        List<String> userIds = usersInDepartment.stream()
+                .map(User::getUserId)
+                .collect(Collectors.toList());
+
+        List<Session> sessions = sessionRepository.findAllByUserIdIn(userIds);
+
+        Map<LocalDate, OrsStats> weeklyStats = calculateWeeklyStats(sessions, Session::getOrsScore);
+
+        return new OrsStatisticsResponse(weeklyStats);
+    }
+
+    /**
+     * 전체 유저의 SRS 평균, 분산 (주간 단위) 반환
+     */
+    public SrsStatisticsResponse getSrsStatistics() {
+        List<Session> closedSessions = sessionRepository.findAllByIsClosedTrue();
+
+        Map<LocalDate, SrsStats> weeklyStats = calculateWeeklyStats(closedSessions, Session::getSrsScore);
+
+        return new SrsStatisticsResponse(weeklyStats);
+    }
+
+    /**
+     * 주 단위로 그룹화하여 평균 및 분산을 계산
+     */
+    private <T> Map<LocalDate, T> calculateWeeklyStats(
+            List<Session> sessions,
+            Function<Session, Integer> scoreExtractor
+    ) {
+        Map<LocalDate, List<Integer>> weeklyScores = sessions.stream()
+                .filter(session -> scoreExtractor.apply(session) != null)
+                .collect(Collectors.groupingBy(
+                        session -> session.getCreatedAt().toLocalDate()
+                                .with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1),
+                        Collectors.mapping(scoreExtractor, Collectors.toList())
+                ));
+
+        Map<LocalDate, T> weeklyStats = new HashMap<>();
+
+        for (Map.Entry<LocalDate, List<Integer>> entry : weeklyScores.entrySet()) {
+            double average = entry.getValue().stream()
+                    .mapToInt(Integer::intValue)
+                    .average()
+                    .orElse(0.0);
+
+            double variance = entry.getValue().stream()
+                    .mapToDouble(score -> Math.pow(score - average, 2))
+                    .average()
+                    .orElse(0.0);
+
+            weeklyStats.put(entry.getKey(), (T) new OrsStats(average, variance));
+        }
+
+        return weeklyStats;
+    }
 }
 

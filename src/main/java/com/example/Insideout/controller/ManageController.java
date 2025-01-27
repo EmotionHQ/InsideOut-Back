@@ -1,7 +1,10 @@
 package com.example.Insideout.controller;
 
 import com.example.Insideout.dto.DepartmentInfoResponse;
+import com.example.Insideout.dto.OrsStatisticsResponse;
 import com.example.Insideout.dto.SessionIdResponse;
+import com.example.Insideout.dto.SrsResponse;
+import com.example.Insideout.dto.SrsStatisticsResponse;
 import com.example.Insideout.dto.UserInfoResponse;
 import com.example.Insideout.service.DepartmentService;
 import com.example.Insideout.service.SessionService;
@@ -45,5 +48,20 @@ public class ManageController {
     @GetMapping("/departments")
     public List<DepartmentInfoResponse> getAllDepartmentsInfo() {
         return departmentService.getAllDepartmentInfo();
+    }
+
+    @GetMapping("/statistics/ors")
+    public OrsStatisticsResponse getOrsStatistics(@RequestParam String userId) {
+        return departmentService.getOrsStatisticsByUserId(userId);
+    }
+
+    @GetMapping("/srs")
+    public List<SrsResponse> getUserSessions(@RequestParam String userId) {
+        return userService.getSrsByUserId(userId);
+    }
+
+    @GetMapping("/statistics/srs")
+    public SrsStatisticsResponse getSrsStatistics() {
+        return departmentService.getSrsStatistics();
     }
 }
