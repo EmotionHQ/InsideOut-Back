@@ -1,6 +1,7 @@
 package com.example.Insideout.service;
 
 import com.example.Insideout.dto.UserDto;
+import com.example.Insideout.dto.UserUpdateDto;
 import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.User;
 import com.example.Insideout.repository.MessageRepository;
@@ -14,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.example.Insideout.dto.UserUpdateDto;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -95,7 +95,7 @@ public class UserService implements UserDetailsService {
 
     public User updateUser(String userId, UserUpdateDto updateDto) {
         User user = findByUserId(userId);
-        
+
         if (updateDto.getNewPassword() != null) {
             user.setPasswordHash(passwordEncoder.encode(updateDto.getNewPassword()));
         }
@@ -106,11 +106,11 @@ public class UserService implements UserDetailsService {
             user.setPhoneNumber(updateDto.getPhoneNumber());
         }
         if (updateDto.getDeptCode() != null && user.getRole() == User.Role.USER) {
-            String departmentName = departmentService.findDepartmentByDeptCode(updateDto.getDeptCode());
+            //String departmentName = departmentService.findDepartmentByDeptCode(updateDto.getDeptCode());
             user.setDeptCode(updateDto.getDeptCode());
-            user.setDepartment(departmentName);
+            //user.setDepartment(departmentName);
         }
-        
+
         return userRepository.save(user);
     }
 
