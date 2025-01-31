@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class SessionSummaryResponse {
+    private Integer orsScore;
     private String summary;
     private Status status;
     private String feedback;

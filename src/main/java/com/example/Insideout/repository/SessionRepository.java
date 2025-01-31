@@ -3,6 +3,7 @@ package com.example.Insideout.repository;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.Session.AgreementType;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,6 +26,9 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     List<Session> findAllByIsClosedTrue();
 
     Optional<Session> findBySessionId(Long sessionId);
+
+    @Query("SELECT s.sessionId FROM Session s WHERE s.userId IN :userIds AND s.createdAt >= :startDate AND s.agreement = 'ACCEPTED'")
+    List<Long> findAcceptedSessions(List<String> userIds, LocalDateTime startDate);
 
     void deleteAllByUserId(String userId);
 }
