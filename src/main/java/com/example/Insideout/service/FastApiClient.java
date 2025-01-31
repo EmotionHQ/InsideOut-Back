@@ -4,6 +4,7 @@ import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.SessionSummaryResponse;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -51,5 +52,15 @@ public class FastApiClient {
 
         // FastAPI로 요청 및 응답 처리
         return restTemplate.postForObject(url, requestBody, SessionSummaryResponse.class);
+    }
+
+    /**
+     * 부서원들의 세션 아이디들 전달 > 부서의 개선 사항 반환
+     */
+    public String getImprovements(List<Long> sessionIds) {
+        String url = "http://localhost:8000/api/department/improvements";
+        Map<String, List<Long>> request = Map.of("sessionIds", sessionIds);
+
+        return restTemplate.postForObject(url, request, String.class);
     }
 }
