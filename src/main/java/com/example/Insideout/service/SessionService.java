@@ -181,6 +181,7 @@ public class SessionService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 세션을 찾을 수 없습니다: " + sessionId));
 
         return new SessionSummaryResponse(
+                session.getOrsScore(),
                 session.getSummary(),
                 session.getStatus(),
                 session.getFeedback()
