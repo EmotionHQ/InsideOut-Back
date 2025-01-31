@@ -20,4 +20,6 @@ public class Department {
     @Column(name = "department_name", nullable = false, unique = true)
     private String department;
 
+    @Column(name = "improvements", columnDefinition = "TEXT")
+    private String improvements;  // 추가된 컬럼
 }

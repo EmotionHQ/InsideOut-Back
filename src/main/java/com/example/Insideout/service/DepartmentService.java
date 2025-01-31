@@ -14,15 +14,19 @@ import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.DepartmentRepository;
 import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,12 +35,14 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
+    private final FastApiClient fastApiClient;
 
     public DepartmentService(DepartmentRepository departmentRepository, UserRepository userRepository,
-                             SessionRepository sessionRepository) {
+                             SessionRepository sessionRepository, FastApiClient fastApiClient) {
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
+        this.fastApiClient = fastApiClient;
     }
 
     /**
@@ -208,6 +214,52 @@ public class DepartmentService {
         }
 
         return weeklyStats;
+    }
+
+    /**
+     * 부서 개선 사항 저장 및 반환
+     */
+    @Transactional
+    public String processImprovements(String userId) {
+
+        String deptCode = userRepository.findByUserId(userId)
+                .map(User::getDeptCode)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다"));
+
+        List<String> userIds = userRepository.findAllByDeptCode(deptCode)
+                .stream().map(User::getUserId).toList();
+
+        // 최근 30일 동안 생성된, AGREEMENT = ACCEPTED인 세션 조회
+        List<Long> sessionIds = sessionRepository.findAcceptedSessions(userIds, LocalDateTime.now().minusDays(30));
+
+        if (sessionIds.isEmpty()) {
+            return "부서의 상담 세션이 존재하지 않습니다";
+        }
+
+        // FastAPI 호출하여 개선사항 가져오기
+        String improvements = fastApiClient.getImprovements(sessionIds);
+
+        // 비동기 DB 저장
+        saveImprovementsAsync(deptCode, improvements);
+
+        return improvements;
+    }
+
+    @Async
+    @Transactional
+    public CompletableFuture<Void> saveImprovementsAsync(String deptCode, String improvements) {
+
+        if (improvements == null || improvements.trim().isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        Department department = departmentRepository.findByDeptCode(deptCode)
+                .orElseThrow(() -> new IllegalArgumentException("해당 부서가 존재하지 않습니다."));
+
+        department.setImprovements(improvements);
+        departmentRepository.save(department);
+
+        return CompletableFuture.completedFuture(null);
     }
 }
 
