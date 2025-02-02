@@ -9,6 +9,7 @@ import com.example.Insideout.entity.Board;
 import com.example.Insideout.entity.UploadFile;
 import com.example.Insideout.entity.User;
 import com.example.Insideout.repository.BoardRepository;
+import com.example.Insideout.repository.CommentRepository;
 import com.example.Insideout.repository.UploadFileRepository;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -28,14 +29,17 @@ public class BoardService {
     private final UserRepository userRepository;
     private final UploadFileService uploadFileService;
     private final UploadFileRepository uploadFileRepository;
+    private final CommentRepository commentRepository;
 
     public BoardService(BoardRepository boardRepository, UserRepository userRepository,
-                        UploadFileService uploadFileService, UploadFileRepository uploadFileRepository) {
+                        UploadFileService uploadFileService, UploadFileRepository uploadFileRepository,
+                        CommentRepository commentRepository) {
 
         this.boardRepository = boardRepository;
         this.userRepository = userRepository;
         this.uploadFileService = uploadFileService;
         this.uploadFileRepository = uploadFileRepository;
+        this.commentRepository = commentRepository;
     }
 
     /*
@@ -88,18 +92,23 @@ public class BoardService {
         List<Board> boards = boardRepository.findInquiryBoards();
 
         return boards.stream()
-                .map(board -> new BoardResponse(
-                        board.getInquiryId(),
-                        board.getUserId(),
-                        board.getTitle(),
-                        "문의게시판 전체 조회 성공"
-                ))
+                .map(board -> {
+                    Long commentCount = commentRepository.countByInquiryId(board.getInquiryId());
+                    return new BoardResponse(
+                            board.getInquiryId(),
+                            board.getUserId(),
+                            board.getTitle(),
+                            commentCount,
+                            "문의게시판 전체 조회 성공"
+                    );
+                })
                 .toList();
     }
 
     /*
     문의 상세 조회
      */
+    @Transactional
     public BoardResponse getInquiryDetail(Long inquiryId) {
         Board board = boardRepository.findInquiryBoards()
                 .stream()
