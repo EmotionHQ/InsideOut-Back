@@ -37,6 +37,9 @@ public class Message {
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "image_url", nullable = true)
+    private String imageUrl;
+
     public enum AuthorType {
         AI, USER
     }

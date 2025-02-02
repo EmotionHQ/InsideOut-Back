@@ -10,4 +10,5 @@ public class MessageRequest {
     private Long sessionId;
     private String content;
     private LocalDateTime createdAt;
+    private String imageUrl;
 }
