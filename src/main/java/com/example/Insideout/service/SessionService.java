@@ -14,6 +14,7 @@ import com.example.Insideout.entity.Session.AgreementType;
 import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
 import jakarta.transaction.Transactional;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -153,6 +154,7 @@ public class SessionService {
         List<Session> acceptedSessions = sessionRepository.findByUserIdAndAgreement(userId, AgreementType.ACCEPTED);
 
         return acceptedSessions.stream()
+                .sorted(Comparator.comparing(Session::getCreatedAt))  // createdAt 기준 오름차순 정렬
                 .map(session -> new SessionIdResponse(session.getSessionId(), session.getCreatedAt()))
                 .collect(Collectors.toList());
     }
