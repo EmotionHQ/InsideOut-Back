@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,27 +48,23 @@ public class BoardService {
     /*
     공지사항 전체 조회
      */
-    public List<BoardResponse> getNoticeBoards() {
-        List<Board> boards = boardRepository.findNoticeBoards();
+    public Page<BoardResponse> getNoticeBoards(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Board> boards = boardRepository.findNoticeBoards(pageable);
 
-        return boards.stream()
-                .map(board -> new BoardResponse(
-                        board.getInquiryId(),
-                        board.getUserId(),
-                        board.getTitle(),
-                        "공지사항 전체 조회 성공"
-                ))
-                .toList();
+        return boards.map(board -> new BoardResponse(
+                board.getInquiryId(),
+                board.getUserId(),
+                board.getTitle(),
+                "공지사항 전체 조회 성공"
+        ));
     }
 
     /*
     공지사항 상세 조회
      */
     public BoardResponse getNoticeDetail(Long inquiryId) {
-        Board board = boardRepository.findNoticeBoards()
-                .stream()
-                .filter(b -> b.getInquiryId().equals(inquiryId))
-                .findFirst()
+        Board board = boardRepository.findNoticeBoardById(inquiryId)
                 .orElseThrow(() -> new IllegalArgumentException("공지사항 게시글을 찾을 수 없습니다."));
 
         List<String> filePath = uploadFileRepository.findByBoard(board)
@@ -88,21 +87,20 @@ public class BoardService {
     /*
     문의 게시판 전체 조회
      */
-    public List<BoardResponse> getInquiryBoards() {
-        List<Board> boards = boardRepository.findInquiryBoards();
+    public Page<BoardResponse> getInquiryBoards(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Board> boards = boardRepository.findInquiryBoards(pageable);
 
-        return boards.stream()
-                .map(board -> {
-                    Long commentCount = commentRepository.countByInquiryId(board.getInquiryId());
-                    return new BoardResponse(
-                            board.getInquiryId(),
-                            board.getUserId(),
-                            board.getTitle(),
-                            commentCount,
-                            "문의게시판 전체 조회 성공"
-                    );
-                })
-                .toList();
+        return boards.map(board -> {
+            Long commentCount = commentRepository.countByInquiryId(board.getInquiryId());
+            return new BoardResponse(
+                    board.getInquiryId(),
+                    board.getUserId(),
+                    board.getTitle(),
+                    commentCount,
+                    "문의게시판 전체 조회 성공"
+            );
+        });
     }
 
     /*
@@ -110,10 +108,7 @@ public class BoardService {
      */
     @Transactional
     public BoardResponse getInquiryDetail(Long inquiryId) {
-        Board board = boardRepository.findInquiryBoards()
-                .stream()
-                .filter(b -> b.getInquiryId().equals(inquiryId))
-                .findFirst()
+        Board board = boardRepository.findInquiryBoards(inquiryId)
                 .orElseThrow(() -> new IllegalArgumentException("문의 게시글을 찾을 수 없습니다."));
 
 //        User requester = userRepository.findById(request.getUserId())

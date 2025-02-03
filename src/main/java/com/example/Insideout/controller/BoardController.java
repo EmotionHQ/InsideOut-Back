@@ -7,9 +7,9 @@ import com.example.Insideout.service.UploadFileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolationException;
 import java.io.IOException;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -43,8 +44,9 @@ public class BoardController {
 
     //공지사항 조회
     @GetMapping("/notice")
-    public ResponseEntity<List<BoardResponse>> getNoticeBoard() {
-        List<BoardResponse> responses = boardService.getNoticeBoards();
+    public ResponseEntity<Page<BoardResponse>> getNoticeBoard(@RequestParam(defaultValue = "0") int page,
+                                                              @RequestParam(defaultValue = "10") int size) {
+        Page<BoardResponse> responses = boardService.getNoticeBoards(page, size);
         return ResponseEntity.ok(responses);
     }
 
@@ -57,8 +59,9 @@ public class BoardController {
 
     //문의게시판 조회
     @GetMapping("/inquiry")
-    public ResponseEntity<List<BoardResponse>> getInquiryBoard() {
-        List<BoardResponse> responses = boardService.getInquiryBoards();
+    public ResponseEntity<Page<BoardResponse>> getInquiryBoard(@RequestParam(defaultValue = "0") int page,
+                                                               @RequestParam(defaultValue = "10") int size) {
+        Page<BoardResponse> responses = boardService.getInquiryBoards(page, size);
         return ResponseEntity.ok(responses);
     }
 
