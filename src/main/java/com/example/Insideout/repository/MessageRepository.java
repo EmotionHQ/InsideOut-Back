@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    @Query("SELECT new com.example.Insideout.dto.MessageResponse(m.content, m.authorType, m.createdAt) " +
+    @Query("SELECT new com.example.Insideout.dto.MessageResponse(m.content, m.authorType, m.createdAt, m.imageUrl) " +
             "FROM Message m WHERE m.session.sessionId = :sessionId")
     List<MessageResponse> findMessagesBySessionId(@Param("sessionId") Long sessionId);
 
