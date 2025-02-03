@@ -22,6 +22,7 @@ public class BoardResponse {
     private Board board;
     private List<String> filePath;
     private List<CommentResponse> comments; // 게시물 불러 올때 댓글 불러오기(리스트 형태로)
+    private Long commentsCount;
 
     // 작성 Dto
     public BoardResponse(Long inquiryId, String userId, String title, String content,
@@ -45,11 +46,20 @@ public class BoardResponse {
         this.message = message;
     }
 
-    // 전체 조회 Dto
+    // 공지사항 전체 조회 Dto
     public BoardResponse(Long inquiryId, String userId, String title, String message) {
         this.inquiryId = inquiryId;
         this.userId = userId;
         this.title = title;
+        this.message = message;
+    }
+
+    // 문의사항 전체 조회 Dto
+    public BoardResponse(Long inquiryId, String userId, String title, Long commentsCount, String message) {
+        this.inquiryId = inquiryId;
+        this.userId = userId;
+        this.title = title;
+        this.commentsCount = commentsCount;
         this.message = message;
     }
 

@@ -11,10 +11,10 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     /*
      *Role에 따라 데이터 필터링 쿼리
      */
-    @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role = 'ADMIN'")
+    @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role = 'ADMIN' ORDER BY b.createdTime DESC")
     List<Board> findNoticeBoards();
 
-    @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role IN ('USER','MANAGER')")
+    @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role IN ('USER','MANAGER') ORDER BY b.createdTime DESC")
     List<Board> findInquiryBoards();
 
 }
