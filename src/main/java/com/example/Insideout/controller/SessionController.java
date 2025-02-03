@@ -7,7 +7,9 @@ import com.example.Insideout.dto.SessionCreationRequest;
 import com.example.Insideout.dto.SessionEndRequest;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
+import com.example.Insideout.dto.UploadFileResponse;
 import com.example.Insideout.service.SessionService;
+import com.example.Insideout.service.ChatImageUploadService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,15 +21,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/chat")
 public class SessionController {
 
     private final SessionService sessionService;
+    private final ChatImageUploadService chatImageUploadService;
 
-    public SessionController(SessionService sessionService) {
+    public SessionController(SessionService sessionService, ChatImageUploadService chatImageUploadService) {
         this.sessionService = sessionService;
+        this.chatImageUploadService = chatImageUploadService;
     }
 
     @PostMapping("/session/create")
@@ -74,5 +80,15 @@ public class SessionController {
     @PostMapping("/send")
     public MessageResponse sendMessage(@RequestBody MessageRequest messageRequest) {
         return sessionService.processMessage(messageRequest);
+    }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<UploadFileResponse> uploadImage(@RequestParam("image") MultipartFile image) {
+        try {
+            String imageUrl = chatImageUploadService.uploadImage(image);
+            return ResponseEntity.ok(new UploadFileResponse(null, image.getOriginalFilename(), imageUrl, "이미지 업로드 성공"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new UploadFileResponse(null, null, null, "이미지 업로드 실패: " + e.getMessage()));
+        }
     }
 }

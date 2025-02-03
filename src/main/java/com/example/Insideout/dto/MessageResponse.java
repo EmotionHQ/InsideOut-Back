@@ -13,4 +13,5 @@ public class MessageResponse {
     private String content;
     private AuthorType authorType;
     private LocalDateTime createdAt;
+    private String imageUrl;
 }

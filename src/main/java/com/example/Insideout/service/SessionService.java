@@ -129,6 +129,7 @@ public class SessionService {
         userMessage.setContent(messageRequest.getContent());
         userMessage.setAuthorType(Message.AuthorType.USER);
         userMessage.setCreatedAt(messageRequest.getCreatedAt());
+        userMessage.setImageUrl(messageRequest.getImageUrl());
         messageRepository.save(userMessage);
 
         // FastAPI로 메시지 전달 및 응답 받기
