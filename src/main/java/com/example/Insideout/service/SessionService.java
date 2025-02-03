@@ -177,17 +177,19 @@ public class SessionService {
     }
 
     /**
-     * 조회된 세션의 요약, 개선 사항, 상태 반환
+     * 세션의 요약, 개선 사항, 상태 반환
      */
-    public SessionSummaryResponse getSessionDetails(Long sessionId) {
-        Session session = sessionRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 세션을 찾을 수 없습니다: " + sessionId));
+    public List<SessionSummaryResponse> getSessionDetails(String userId) {
+        List<Session> mySessions = sessionRepository.findAllByUserIdOrderByCreatedAtAsc(userId);
 
-        return new SessionSummaryResponse(
-                session.getOrsScore(),
-                session.getSummary(),
-                session.getStatus(),
-                session.getFeedback()
-        );
+        return mySessions.stream()
+                .map(session -> new SessionSummaryResponse(
+                        session.getOrsScore(),
+                        session.getSummary(),
+                        session.getStatus(),
+                        session.getFeedback(),
+                        session.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
     }
 }
