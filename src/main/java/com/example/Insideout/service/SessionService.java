@@ -153,7 +153,7 @@ public class SessionService {
         List<Session> acceptedSessions = sessionRepository.findByUserIdAndAgreement(userId, AgreementType.ACCEPTED);
 
         return acceptedSessions.stream()
-                .map(session -> new SessionIdResponse(session.getSessionId()))
+                .map(session -> new SessionIdResponse(session.getSessionId(), session.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
