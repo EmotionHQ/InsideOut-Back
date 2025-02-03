@@ -26,8 +26,11 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class DepartmentService {
@@ -101,14 +104,14 @@ public class DepartmentService {
     /**
      * 부서 정보 + 부서 매니저 이름 반환
      */
-    public List<DepartmentInfoResponse> getAllDepartmentInfo() {
-        return departmentRepository.findAllDepartmentsWithManagers();
+    public Page<DepartmentInfoResponse> getAllDepartmentInfo(Pageable pageable) {
+        return departmentRepository.findAllDepartmentsWithManagers(pageable);
     }
 
     /**
      * 부서에 속한 부서원 정보 반환
      */
-    public List<UserInfoResponse> getUsersInSameDepartment(String userId) {
+    public Page<UserInfoResponse> getUsersInSameDepartment(String userId, Pageable pageable) {
 
         User manager = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
@@ -117,37 +120,27 @@ public class DepartmentService {
             throw new IllegalArgumentException("해당 유저는 매니저가 아닙니다.");
         }
 
-        List<User> usersInDepartment = userRepository.findAllByDeptCode(manager.getDeptCode())
-                .stream()
-                .filter(user -> user.getRole() == Role.USER)
-                .toList();
+        Page<User> usersPage = userRepository.findAllByDeptCodeAndRole(manager.getDeptCode(), Role.USER, pageable);
 
-        return usersInDepartment.stream()
-                .map(u -> new UserInfoResponse(
-                        u.getName(),  // 이름 반환
-                        u.getUserId() // 아이디 반환
-                ))
-                .collect(Collectors.toList());
+        return usersPage.map(user -> new UserInfoResponse(user.getName(), user.getUserId()));
     }
 
     /**
      * 부서에 속한 모든 유저 정보 반환
      */
-    public List<UserInfoResponse> getUsersByDepartmentName(String departmentName) {
+    public Page<UserInfoResponse> getUsersByDepartmentName(String departmentName, Pageable pageable) {
         Department department = departmentRepository.findByDepartment(departmentName)
                 .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다: " + departmentName));
 
-        List<User> users = userRepository.findAllByDeptCode(department.getDeptCode());
+        Page<User> userPage = userRepository.findAllByDeptCode(department.getDeptCode(), pageable);
 
-        return users.stream()
-                .map(user -> new UserInfoResponse(
-                        user.getName(),
-                        user.getUserId(),
-                        user.getEmail(),
-                        user.getPhoneNumber(),
-                        user.getRole()
-                ))
-                .collect(Collectors.toList());
+        return userPage.map(user -> new UserInfoResponse(
+                user.getName(),
+                user.getUserId(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getRole()
+        ));
     }
 
     /**

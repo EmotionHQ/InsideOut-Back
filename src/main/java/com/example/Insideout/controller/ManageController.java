@@ -10,6 +10,9 @@ import com.example.Insideout.service.DepartmentService;
 import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.UserService;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,13 +36,19 @@ public class ManageController {
     }
 
     @GetMapping(value = "/department/users", params = "userId")
-    public List<UserInfoResponse> getUsersInSameDepartment(@RequestParam String userId) {
-        return departmentService.getUsersInSameDepartment(userId);
+    public Page<UserInfoResponse> getUsersInSameDepartment(
+            @RequestParam String userId,
+            @PageableDefault(size = 4, sort = "name") Pageable pageable
+    ) {
+        return departmentService.getUsersInSameDepartment(userId, pageable);
     }
 
     @GetMapping(value = "/department/users", params = "departmentName")
-    public List<UserInfoResponse> getUsersByDepartmentName(@RequestParam String departmentName) {
-        return departmentService.getUsersByDepartmentName(departmentName);
+    public Page<UserInfoResponse> getUsersByDepartmentName(
+            @RequestParam String departmentName,
+            @PageableDefault(size = 5, sort = "name") Pageable pageable // 기본 페이지 크기와 정렬 기준 설정
+    ) {
+        return departmentService.getUsersByDepartmentName(departmentName, pageable);
     }
 
     @GetMapping("/accepted")
@@ -48,8 +57,10 @@ public class ManageController {
     }
 
     @GetMapping("/departments")
-    public List<DepartmentInfoResponse> getAllDepartmentsInfo() {
-        return departmentService.getAllDepartmentInfo();
+    public Page<DepartmentInfoResponse> getAllDepartmentsInfo(
+            @PageableDefault(size = 4, sort = "deptCode") Pageable pageable
+    ) {
+        return departmentService.getAllDepartmentInfo(pageable);
     }
 
     @GetMapping("/statistics/ors")
