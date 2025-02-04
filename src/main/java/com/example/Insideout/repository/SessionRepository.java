@@ -21,6 +21,8 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
 
     List<Session> findAllByUserId(String userId);
 
+    List<Session> findAllByUserIdOrderByCreatedAtAsc(String userId);
+
     List<Session> findAllByUserIdIn(List<String> userIds);
 
     List<Session> findAllByIsClosedTrue();

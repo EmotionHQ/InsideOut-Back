@@ -139,7 +139,7 @@ public class UserService implements UserDetailsService {
      * 유저의 모든 세션 srs 점수 반환
      */
     public List<SrsResponse> getSrsByUserId(String userId) {
-        List<Session> sessions = sessionRepository.findAllByUserId(userId);
+        List<Session> sessions = sessionRepository.findAllByUserIdOrderByCreatedAtAsc(userId);
 
         return sessions.stream()
                 .map(session -> new SrsResponse(session.getSrsScore(), session.getCreatedAt()))

@@ -14,6 +14,7 @@ import com.example.Insideout.entity.Session.AgreementType;
 import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
 import jakarta.transaction.Transactional;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,7 @@ public class SessionService {
         // 초기 메시지 생성
         Message message = new Message();
         message.setSession(session);
-        message.setContent("안녕! 내 이름은 마음이야. 무슨 고민이 있니?");
+        message.setContent("마음이 무거운가요? 여기는 감정본부입니다. 작은 고민도 괜찮아요. 함께 이야기하면서 정리해 봐요.");
         message.setAuthorType(AuthorType.AI);
         messageRepository.save(message);
 
@@ -153,7 +154,8 @@ public class SessionService {
         List<Session> acceptedSessions = sessionRepository.findByUserIdAndAgreement(userId, AgreementType.ACCEPTED);
 
         return acceptedSessions.stream()
-                .map(session -> new SessionIdResponse(session.getSessionId()))
+                .sorted(Comparator.comparing(Session::getCreatedAt))  // createdAt 기준 오름차순 정렬
+                .map(session -> new SessionIdResponse(session.getSessionId(), session.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
@@ -175,17 +177,19 @@ public class SessionService {
     }
 
     /**
-     * 조회된 세션의 요약, 개선 사항, 상태 반환
+     * 세션의 요약, 개선 사항, 상태 반환
      */
-    public SessionSummaryResponse getSessionDetails(Long sessionId) {
-        Session session = sessionRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 세션을 찾을 수 없습니다: " + sessionId));
+    public List<SessionSummaryResponse> getSessionDetails(String userId) {
+        List<Session> mySessions = sessionRepository.findAllByUserIdOrderByCreatedAtAsc(userId);
 
-        return new SessionSummaryResponse(
-                session.getOrsScore(),
-                session.getSummary(),
-                session.getStatus(),
-                session.getFeedback()
-        );
+        return mySessions.stream()
+                .map(session -> new SessionSummaryResponse(
+                        session.getOrsScore(),
+                        session.getSummary(),
+                        session.getStatus(),
+                        session.getFeedback(),
+                        session.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
     }
 }

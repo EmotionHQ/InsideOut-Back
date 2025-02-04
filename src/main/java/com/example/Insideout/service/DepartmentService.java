@@ -25,9 +25,16 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class DepartmentService {
@@ -101,14 +108,19 @@ public class DepartmentService {
     /**
      * 부서 정보 + 부서 매니저 이름 반환
      */
-    public List<DepartmentInfoResponse> getAllDepartmentInfo() {
-        return departmentRepository.findAllDepartmentsWithManagers();
+    public Page<DepartmentInfoResponse> getAllDepartmentInfo(String keyword, Pageable pageable) {
+
+        if (keyword == null || keyword.isEmpty()) {
+            return departmentRepository.findAllDepartmentsWithManagers(pageable);
+        }
+
+        return departmentRepository.findAllDepartmentsWithManagersByKeyword(keyword, pageable);
     }
 
     /**
      * 부서에 속한 부서원 정보 반환
      */
-    public List<UserInfoResponse> getUsersInSameDepartment(String userId) {
+    public Page<UserInfoResponse> getUsersInSameDepartment(String userId, String memberName, Pageable pageable) {
 
         User manager = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
@@ -117,37 +129,35 @@ public class DepartmentService {
             throw new IllegalArgumentException("해당 유저는 매니저가 아닙니다.");
         }
 
-        List<User> usersInDepartment = userRepository.findAllByDeptCode(manager.getDeptCode())
-                .stream()
-                .filter(user -> user.getRole() == Role.USER)
-                .toList();
+        String searchName = (memberName != null && !memberName.isEmpty()) ? memberName : "";
 
-        return usersInDepartment.stream()
-                .map(u -> new UserInfoResponse(
-                        u.getName(),  // 이름 반환
-                        u.getUserId() // 아이디 반환
-                ))
-                .collect(Collectors.toList());
+        Page<User> usersPage = userRepository.findAllByDeptCodeAndRoleAndNameContaining(
+                manager.getDeptCode(), Role.USER, searchName, pageable);
+
+        return usersPage.map(user -> new UserInfoResponse(user.getName(), user.getUserId()));
     }
 
     /**
      * 부서에 속한 모든 유저 정보 반환
      */
-    public List<UserInfoResponse> getUsersByDepartmentName(String departmentName) {
+    public Page<UserInfoResponse> getUsersByDepartmentName(String departmentName, String memberName,
+                                                           Pageable pageable) {
+
         Department department = departmentRepository.findByDepartment(departmentName)
                 .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다: " + departmentName));
 
-        List<User> users = userRepository.findAllByDeptCode(department.getDeptCode());
+        String searchName = (memberName != null && !memberName.isEmpty()) ? memberName : "";
 
-        return users.stream()
-                .map(user -> new UserInfoResponse(
-                        user.getName(),
-                        user.getUserId(),
-                        user.getEmail(),
-                        user.getPhoneNumber(),
-                        user.getRole()
-                ))
-                .collect(Collectors.toList());
+        Page<User> userPage = userRepository.findAllByDeptCodeAndNameContaining(department.getDeptCode(), searchName,
+                pageable);
+
+        return userPage.map(user -> new UserInfoResponse(
+                user.getName(),
+                user.getUserId(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getRole()
+        ));
     }
 
     /**
@@ -242,6 +252,9 @@ public class DepartmentService {
         // 비동기 DB 저장
         saveImprovementsAsync(deptCode, improvements);
 
+        //프론트에 전달할 내용 파싱
+        improvements = parseToJSON(improvements);
+
         return improvements;
     }
 
@@ -260,6 +273,39 @@ public class DepartmentService {
         departmentRepository.save(department);
 
         return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * 전달받은 부서 개선사항 json 형식으로 파싱
+     */
+    public String parseToJSON(String input) {
+
+        Pattern pattern = Pattern.compile("\\[(.*?)\\]\\s*\\n(.*?)(?=(\\n\\[|$))", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(input);
+
+        Map<String, String[]> categories = new HashMap<>();
+
+        while (matcher.find()) {
+            String category = matcher.group(1).trim();
+            String content = matcher.group(2).trim();
+
+            String[] items = content.split("\\n \\- ");
+
+            if (items.length > 0 && items[0].isEmpty()) {
+                String[] temp = new String[items.length - 1];
+                System.arraycopy(items, 1, temp, 0, temp.length);
+                items = temp;
+            }
+
+            categories.put(category, items);
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        for (Map.Entry<String, String[]> entry : categories.entrySet()) {
+            jsonObject.put(entry.getKey(), new JSONArray(entry.getValue()));
+        }
+
+        return jsonObject.toString(4);
     }
 }
 

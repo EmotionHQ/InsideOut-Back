@@ -12,7 +12,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT new com.example.Insideout.dto.MessageResponse(m.content, m.authorType, m.createdAt, m.imageUrl) " +
-            "FROM Message m WHERE m.session.sessionId = :sessionId")
+            "FROM Message m WHERE m.session.sessionId = :sessionId " +
+            "ORDER BY m.createdAt ASC")
     List<MessageResponse> findMessagesBySessionId(@Param("sessionId") Long sessionId);
 
     void deleteBySession(Session session);

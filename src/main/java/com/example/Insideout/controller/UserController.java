@@ -1,20 +1,19 @@
 package com.example.Insideout.controller;
 
+import com.example.Insideout.dto.PasswordVerificationDto;
 import com.example.Insideout.dto.SessionSummaryResponse;
 import com.example.Insideout.dto.UserDto;
-import com.example.Insideout.dto.PasswordVerificationDto;
-import com.example.Insideout.dto.UserUpdateDto;
 import com.example.Insideout.dto.UserInfoDto;
+import com.example.Insideout.dto.UserUpdateDto;
 import com.example.Insideout.entity.User;
+import com.example.Insideout.service.JwtUtil;
 import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.UserService;
-import com.example.Insideout.service.JwtUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,11 +59,11 @@ public class UserController {
 
     @PostMapping("/verify-password")
     public ResponseEntity<?> verifyPassword(@RequestBody PasswordVerificationDto verificationDto,
-            @RequestHeader("Authorization") String token) {
+                                            @RequestHeader("Authorization") String token) {
         try {
             String userId = jwtUtil.extractUserId(token.substring(7));
             boolean isValid = userService.verifyPassword(userId, verificationDto.getPassword());
-            
+
             if (isValid) {
                 return ResponseEntity.ok().body(Map.of("message", "비밀번호가 확인되었습니다."));
             } else {
@@ -82,7 +81,7 @@ public class UserController {
         try {
             String userId = jwtUtil.extractUserId(token.substring(7));
             User user = userService.findByUserId(userId);
-            
+
             UserInfoDto userInfo = new UserInfoDto();
             userInfo.setUserId(user.getUserId());
             userInfo.setName(user.getName());
@@ -90,7 +89,7 @@ public class UserController {
             userInfo.setPhoneNumber(user.getPhoneNumber());
             userInfo.setRole(user.getRole().name());
             userInfo.setDeptCode(user.getDeptCode());
-            
+
             return ResponseEntity.ok(userInfo);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -100,7 +99,7 @@ public class UserController {
 
     @PutMapping("/me")
     public ResponseEntity<?> updateUserInfo(@RequestBody UserUpdateDto updateDto,
-            @RequestHeader("Authorization") String token) {
+                                            @RequestHeader("Authorization") String token) {
         try {
             String userId = jwtUtil.extractUserId(token.substring(7));
             User updatedUser = userService.updateUser(userId, updateDto);
@@ -110,7 +109,7 @@ public class UserController {
                     .body(Map.of("error", "사용자 정보 수정 중 오류가 발생했습니다."));
         }
     }
-  
+
     @DeleteMapping("/{userId}/delete")
     public ResponseEntity<String> deleteUser(@PathVariable String userId) {
         userService.deleteUserById(userId);
@@ -118,11 +117,11 @@ public class UserController {
     }
 
     /**
-     * 요약, 개선 사항, 상태 반환
+     * 요약, 개선 사항, 상태, ORS 반환 (마이페이지 상담 결과)
      */
-    @GetMapping("/summary/{sessionId}")
-    public SessionSummaryResponse getSessionSummary(@PathVariable Long sessionId) {
-        return sessionService.getSessionDetails(sessionId);
+    @GetMapping("/summary/{userId}")
+    public List<SessionSummaryResponse> getSessionSummary(@PathVariable String userId) {
+        return sessionService.getSessionDetails(userId);
     }
 }
 
