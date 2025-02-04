@@ -108,14 +108,19 @@ public class DepartmentService {
     /**
      * 부서 정보 + 부서 매니저 이름 반환
      */
-    public Page<DepartmentInfoResponse> getAllDepartmentInfo(Pageable pageable) {
-        return departmentRepository.findAllDepartmentsWithManagers(pageable);
+    public Page<DepartmentInfoResponse> getAllDepartmentInfo(String keyword, Pageable pageable) {
+
+        if (keyword == null || keyword.isEmpty()) {
+            return departmentRepository.findAllDepartmentsWithManagers(pageable);
+        }
+
+        return departmentRepository.findAllDepartmentsWithManagersByKeyword(keyword, pageable);
     }
 
     /**
      * 부서에 속한 부서원 정보 반환
      */
-    public Page<UserInfoResponse> getUsersInSameDepartment(String userId, Pageable pageable) {
+    public Page<UserInfoResponse> getUsersInSameDepartment(String userId, String memberName, Pageable pageable) {
 
         User manager = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
@@ -124,7 +129,10 @@ public class DepartmentService {
             throw new IllegalArgumentException("해당 유저는 매니저가 아닙니다.");
         }
 
-        Page<User> usersPage = userRepository.findAllByDeptCodeAndRole(manager.getDeptCode(), Role.USER, pageable);
+        String searchName = (memberName != null && !memberName.isEmpty()) ? memberName : "";
+
+        Page<User> usersPage = userRepository.findAllByDeptCodeAndRoleAndNameContaining(
+                manager.getDeptCode(), Role.USER, searchName, pageable);
 
         return usersPage.map(user -> new UserInfoResponse(user.getName(), user.getUserId()));
     }
@@ -132,11 +140,16 @@ public class DepartmentService {
     /**
      * 부서에 속한 모든 유저 정보 반환
      */
-    public Page<UserInfoResponse> getUsersByDepartmentName(String departmentName, Pageable pageable) {
+    public Page<UserInfoResponse> getUsersByDepartmentName(String departmentName, String memberName,
+                                                           Pageable pageable) {
+
         Department department = departmentRepository.findByDepartment(departmentName)
                 .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다: " + departmentName));
 
-        Page<User> userPage = userRepository.findAllByDeptCode(department.getDeptCode(), pageable);
+        String searchName = (memberName != null && !memberName.isEmpty()) ? memberName : "";
+
+        Page<User> userPage = userRepository.findAllByDeptCodeAndNameContaining(department.getDeptCode(), searchName,
+                pageable);
 
         return userPage.map(user -> new UserInfoResponse(
                 user.getName(),

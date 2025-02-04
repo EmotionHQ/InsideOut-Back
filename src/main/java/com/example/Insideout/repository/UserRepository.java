@@ -15,7 +15,9 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Page<User> findAllByDeptCode(String deptCode, Pageable pageable);
 
-    Page<User> findAllByDeptCodeAndRole(String deptCode, Role role, Pageable pageable);
+    Page<User> findAllByDeptCodeAndNameContaining(String deptCode, String name, Pageable pageable);
+
+    Page<User> findAllByDeptCodeAndRoleAndNameContaining(String deptCode, Role role, String name, Pageable pageable);
 
     void deleteByUserId(String userId);
 

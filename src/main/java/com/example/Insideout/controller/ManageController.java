@@ -35,20 +35,28 @@ public class ManageController {
         this.departmentService = departmentService;
     }
 
+    /**
+     * 매니저 아이디로 부서원 정보 반환 (부서 관리자)
+     */
     @GetMapping(value = "/department/users", params = "userId")
     public Page<UserInfoResponse> getUsersInSameDepartment(
             @RequestParam String userId,
+            @RequestParam(required = false) String memberName,
             @PageableDefault(size = 4, sort = "name") Pageable pageable
     ) {
-        return departmentService.getUsersInSameDepartment(userId, pageable);
+        return departmentService.getUsersInSameDepartment(userId, memberName, pageable);
     }
 
+    /**
+     * 부서명으로 부서원 정보 반환 (웹 관리자)
+     */
     @GetMapping(value = "/department/users", params = "departmentName")
     public Page<UserInfoResponse> getUsersByDepartmentName(
             @RequestParam String departmentName,
-            @PageableDefault(size = 5, sort = "name") Pageable pageable // 기본 페이지 크기와 정렬 기준 설정
+            @RequestParam(required = false) String memberName,
+            @PageableDefault(size = 5, sort = "name") Pageable pageable
     ) {
-        return departmentService.getUsersByDepartmentName(departmentName, pageable);
+        return departmentService.getUsersByDepartmentName(departmentName, memberName, pageable);
     }
 
     @GetMapping("/accepted")
@@ -58,9 +66,10 @@ public class ManageController {
 
     @GetMapping("/departments")
     public Page<DepartmentInfoResponse> getAllDepartmentsInfo(
+            @RequestParam(required = false) String keyword,
             @PageableDefault(size = 4, sort = "deptCode") Pageable pageable
     ) {
-        return departmentService.getAllDepartmentInfo(pageable);
+        return departmentService.getAllDepartmentInfo(keyword, pageable);
     }
 
     @GetMapping("/statistics/ors")
