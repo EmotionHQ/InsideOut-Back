@@ -3,13 +3,15 @@ package com.example.Insideout.controller;
 import com.example.Insideout.dto.BoardRequest;
 import com.example.Insideout.dto.BoardResponse;
 import com.example.Insideout.service.BoardService;
+import com.example.Insideout.service.JwtUtil;
 import com.example.Insideout.service.UploadFileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolationException;
 import java.io.IOException;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -34,17 +37,22 @@ public class BoardController {
     private final BoardService boardService;
     private final UploadFileService uploadFileService;
     private final ObjectMapper objectMapper;
+    private final JwtUtil jwtUtil;
 
-    public BoardController(BoardService boardService, UploadFileService uploadFileService, ObjectMapper objectMapper) {
+    public BoardController(BoardService boardService, UploadFileService uploadFileService, ObjectMapper objectMapper,
+                           JwtUtil jwtUtil) {
         this.boardService = boardService;
         this.uploadFileService = uploadFileService;
         this.objectMapper = objectMapper;
+        this.jwtUtil = jwtUtil;
     }
 
     //공지사항 조회
     @GetMapping("/notice")
-    public ResponseEntity<List<BoardResponse>> getNoticeBoard() {
-        List<BoardResponse> responses = boardService.getNoticeBoards();
+    public ResponseEntity<Page<BoardResponse>> getNoticeBoard(@RequestParam(required = false) String keyword,
+                                                              @RequestParam(defaultValue = "0") int page,
+                                                              @RequestParam(defaultValue = "10") int size) {
+        Page<BoardResponse> responses = boardService.getNoticeBoards(keyword, page, size);
         return ResponseEntity.ok(responses);
     }
 
@@ -57,9 +65,25 @@ public class BoardController {
 
     //문의게시판 조회
     @GetMapping("/inquiry")
-    public ResponseEntity<List<BoardResponse>> getInquiryBoard() {
-        List<BoardResponse> responses = boardService.getInquiryBoards();
+    public ResponseEntity<Page<BoardResponse>> getInquiryBoard(@RequestParam(defaultValue = "0") int page,
+                                                               @RequestParam(defaultValue = "10") int size) {
+        Page<BoardResponse> responses = boardService.getInquiryBoards(page, size);
         return ResponseEntity.ok(responses);
+    }
+
+    // 내 문의글 조회
+    @GetMapping("/inquiry/myPost")
+    public ResponseEntity<Page<BoardResponse>> getMyInquiryBoard(@RequestParam String userId,
+                                                                 @RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "10") int size) {
+        try {
+            Page<BoardResponse> responses = boardService.getMyInquiryBoards(userId, page, size);
+            return ResponseEntity.ok(responses);
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // 문의 게시판 상세 조회
