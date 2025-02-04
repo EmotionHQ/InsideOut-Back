@@ -1,5 +1,7 @@
 package com.example.Insideout.config;
 
+import com.example.Insideout.service.JwtUtil;
+import com.example.Insideout.service.UserService;
 import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,8 +10,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -20,15 +20,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
+    private final JwtUtil jwtUtil;
+    private final UserService userService;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
-        this.jwtFilter = jwtFilter;
+    public SecurityConfig(JwtUtil jwtUtil, UserService userService) {
+        this.jwtUtil = jwtUtil;
+        this.userService = userService;
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public JwtFilter jwtFilter() {
+        return new JwtFilter(jwtUtil, userService);
     }
 
     /**
@@ -57,7 +59,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -66,11 +68,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000", 
-            "https://insideout-front.netlify.app",
-            "http://localhost:8000",  // FastAPI 서버 URL
-            "https://insideout-ai-production.up.railway.app",
-            "https://insideout-front-production.up.railway.app"
+                "http://localhost:3000",
+                "https://insideout-front.netlify.app",
+                "http://localhost:8000",  // FastAPI 서버 URL
+                "https://insideout-ai-production.up.railway.app",
+                "https://insideout-front-production.up.railway.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
