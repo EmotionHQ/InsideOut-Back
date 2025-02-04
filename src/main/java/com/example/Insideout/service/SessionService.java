@@ -46,7 +46,7 @@ public class SessionService {
         // 초기 메시지 생성
         Message message = new Message();
         message.setSession(session);
-        message.setContent("안녕! 내 이름은 마음이야. 무슨 고민이 있니?");
+        message.setContent("마음이 무거운가요? 여기는 감정본부입니다. 작은 고민도 괜찮아요. 함께 이야기하면서 정리해 봐요.");
         message.setAuthorType(AuthorType.AI);
         messageRepository.save(message);
 
