@@ -121,6 +121,25 @@ public class BoardService {
     }
 
     /*
+    나의 문의 전체 조회
+     */
+    public Page<BoardResponse> getMyInquiryBoards(String userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Board> boards = boardRepository.findInquiryBoardsByMyPost(userId, pageable);
+
+        return boards.map(board -> {
+            Long commentCount = commentRepository.countByInquiryId(board.getInquiryId());
+            return new BoardResponse(
+                    board.getInquiryId(),
+                    board.getUserId(),
+                    board.getTitle(),
+                    commentCount,
+                    "내 문의글 조회 성공"
+            );
+        });
+    }
+
+    /*
     문의 상세 조회
      */
     @Transactional

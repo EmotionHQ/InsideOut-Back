@@ -3,6 +3,7 @@ package com.example.Insideout.controller;
 import com.example.Insideout.dto.BoardRequest;
 import com.example.Insideout.dto.BoardResponse;
 import com.example.Insideout.service.BoardService;
+import com.example.Insideout.service.JwtUtil;
 import com.example.Insideout.service.UploadFileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolationException;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -35,11 +37,14 @@ public class BoardController {
     private final BoardService boardService;
     private final UploadFileService uploadFileService;
     private final ObjectMapper objectMapper;
+    private final JwtUtil jwtUtil;
 
-    public BoardController(BoardService boardService, UploadFileService uploadFileService, ObjectMapper objectMapper) {
+    public BoardController(BoardService boardService, UploadFileService uploadFileService, ObjectMapper objectMapper,
+                           JwtUtil jwtUtil) {
         this.boardService = boardService;
         this.uploadFileService = uploadFileService;
         this.objectMapper = objectMapper;
+        this.jwtUtil = jwtUtil;
     }
 
     //공지사항 조회
@@ -71,6 +76,24 @@ public class BoardController {
     public ResponseEntity<Page<BoardResponse>> getInquiryBoard(@RequestParam(defaultValue = "0") int page,
                                                                @RequestParam(defaultValue = "10") int size) {
         Page<BoardResponse> responses = boardService.getInquiryBoards(page, size);
+        return ResponseEntity.ok(responses);
+    }
+
+    // 내 문의글 조회
+    @GetMapping("/inquiry/myPost")
+    public ResponseEntity<Page<BoardResponse>> getMyInquiryBoard(@RequestHeader("Authorization") String token,
+                                                                 @RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "10") int size) {
+        String pureToken = token.replace("Bearer ", "");
+
+        //JWT 검증 및 userId 추출
+        if (!jwtUtil.validateToken(pureToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String userId = jwtUtil.extractUserId(pureToken);
+
+        Page<BoardResponse> responses = boardService.getMyInquiryBoards(userId, page, size);
         return ResponseEntity.ok(responses);
     }
 
