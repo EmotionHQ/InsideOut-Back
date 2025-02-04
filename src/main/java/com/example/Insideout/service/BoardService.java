@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -48,32 +49,29 @@ public class BoardService {
     /*
     공지사항 전체 조회
      */
-    public Page<BoardResponse> getNoticeBoards(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Board> boards = boardRepository.findNoticeBoards(pageable);
-
-        return boards.map(board -> new BoardResponse(
-                board.getInquiryId(),
-                board.getUserId(),
-                board.getTitle(),
-                "공지사항 전체 조회 성공"
-        ));
-    }
-
-    /*
-    공지사항 검색 조회
-     */
     @Transactional
-    public Page<BoardResponse> getNoticeBoardsTitle(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Board> boards = boardRepository.findNoticeBoardsByTitle(keyword, pageable);
+    public Page<BoardResponse> getNoticeBoards(String keyword, int page, int size) {
+        List<Board> boards;
 
-        return boards.map(board -> new BoardResponse(
-                board.getInquiryId(),
-                board.getUserId(),
-                board.getTitle(),
-                "공지사항 검색 조회 성공"
-        ));
+        if (keyword == null || keyword.trim().isEmpty()) {
+            boards = boardRepository.findNoticeBoards();
+        } else {
+            boards = boardRepository.findNoticeBoardsByTitle(keyword);
+        }
+
+        // 전체 검색 결과에서 페이징 적용
+        Pageable pageable = PageRequest.of(page, size);
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), boards.size());
+        List<Board> pageNotices = boards.subList(start, end);
+
+        return new PageImpl<>(pageNotices, pageable, boards.size())
+                .map(board -> new BoardResponse(
+                        board.getInquiryId(),
+                        board.getUserId(),
+                        board.getTitle(),
+                        "공지사항 조회 성공"
+                ));
     }
 
 

@@ -49,18 +49,10 @@ public class BoardController {
 
     //공지사항 조회
     @GetMapping("/notice")
-    public ResponseEntity<Page<BoardResponse>> getNoticeBoard(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<BoardResponse>> getNoticeBoard(@RequestParam(required = false) String keyword,
+                                                              @RequestParam(defaultValue = "0") int page,
                                                               @RequestParam(defaultValue = "10") int size) {
-        Page<BoardResponse> responses = boardService.getNoticeBoards(page, size);
-        return ResponseEntity.ok(responses);
-    }
-
-    // 공지사항 검색 조회
-    @GetMapping("/notice/search")
-    public ResponseEntity<Page<BoardResponse>> getNoticeBoardsTitle(@RequestParam String keyword,
-                                                                    @RequestParam(defaultValue = "0") int page,
-                                                                    @RequestParam(defaultValue = "10") int size) {
-        Page<BoardResponse> responses = boardService.getNoticeBoardsTitle(keyword, page, size);
+        Page<BoardResponse> responses = boardService.getNoticeBoards(keyword, page, size);
         return ResponseEntity.ok(responses);
     }
 
