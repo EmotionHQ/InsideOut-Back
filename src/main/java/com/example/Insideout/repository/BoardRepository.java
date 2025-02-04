@@ -32,7 +32,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     // 나의 문의 조회
     @Query("SELECT b FROM Board b WHERE b.userId = :userId AND b.userId IN (SELECT u.userId FROM User u WHERE u.role IN ('USER','MANAGER')) ORDER BY b.createdTime DESC")
-    Page<Board> findInquiryBoardsByMyPost(String userId, Pageable pageable);
+    List<Board> findInquiryBoardsByMyPost(String userId);
 
     // 문의 상세조회
     @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role IN ('USER','MANAGER') AND b.id = :inquiryId")

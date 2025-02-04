@@ -6,6 +6,7 @@ import com.example.Insideout.service.BoardService;
 import com.example.Insideout.service.JwtUtil;
 import com.example.Insideout.service.UploadFileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolationException;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -73,20 +73,17 @@ public class BoardController {
 
     // 내 문의글 조회
     @GetMapping("/inquiry/myPost")
-    public ResponseEntity<Page<BoardResponse>> getMyInquiryBoard(@RequestHeader("Authorization") String token,
+    public ResponseEntity<Page<BoardResponse>> getMyInquiryBoard(@RequestParam String userId,
                                                                  @RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size) {
-        String pureToken = token.replace("Bearer ", "");
-
-        //JWT 검증 및 userId 추출
-        if (!jwtUtil.validateToken(pureToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            Page<BoardResponse> responses = boardService.getMyInquiryBoards(userId, page, size);
+            return ResponseEntity.ok(responses);
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-
-        String userId = jwtUtil.extractUserId(pureToken);
-
-        Page<BoardResponse> responses = boardService.getMyInquiryBoards(userId, page, size);
-        return ResponseEntity.ok(responses);
     }
 
     // 문의 게시판 상세 조회
