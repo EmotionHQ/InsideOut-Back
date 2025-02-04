@@ -16,6 +16,10 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role = 'ADMIN' ORDER BY b.createdTime DESC")
     Page<Board> findNoticeBoards(Pageable pageable);
 
+    //공지 검색
+    @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role = 'ADMIN' AND b.title LIKE %:keyword% ORDER BY b.createdTime DESC")
+    Page<Board> findNoticeBoardsByTitle(String keyword, Pageable pageable);
+
     // 공지 상세조회
     @Query("SELECT b FROM Board b JOIN User u ON b.userId = u.userId WHERE u.role = 'ADMIN' AND b.id = :inquiryId")
     Optional<Board> findNoticeBoardById(Long inquiryId);

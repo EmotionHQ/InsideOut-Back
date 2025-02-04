@@ -61,6 +61,23 @@ public class BoardService {
     }
 
     /*
+    공지사항 검색 조회
+     */
+    @Transactional
+    public Page<BoardResponse> getNoticeBoardsTitle(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Board> boards = boardRepository.findNoticeBoardsByTitle(keyword, pageable);
+
+        return boards.map(board -> new BoardResponse(
+                board.getInquiryId(),
+                board.getUserId(),
+                board.getTitle(),
+                "공지사항 검색 조회 성공"
+        ));
+    }
+
+
+    /*
     공지사항 상세 조회
      */
     public BoardResponse getNoticeDetail(Long inquiryId) {
