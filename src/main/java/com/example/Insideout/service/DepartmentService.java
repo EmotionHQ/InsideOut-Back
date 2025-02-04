@@ -25,7 +25,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -235,6 +239,9 @@ public class DepartmentService {
         // 비동기 DB 저장
         saveImprovementsAsync(deptCode, improvements);
 
+        //프론트에 전달할 내용 파싱
+        improvements = parseToJSON(improvements);
+
         return improvements;
     }
 
@@ -253,6 +260,39 @@ public class DepartmentService {
         departmentRepository.save(department);
 
         return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * 전달받은 부서 개선사항 json 형식으로 파싱
+     */
+    public String parseToJSON(String input) {
+
+        Pattern pattern = Pattern.compile("\\[(.*?)\\]\\s*\\n(.*?)(?=(\\n\\[|$))", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(input);
+
+        Map<String, String[]> categories = new HashMap<>();
+
+        while (matcher.find()) {
+            String category = matcher.group(1).trim();
+            String content = matcher.group(2).trim();
+
+            String[] items = content.split("\\n \\- ");
+
+            if (items.length > 0 && items[0].isEmpty()) {
+                String[] temp = new String[items.length - 1];
+                System.arraycopy(items, 1, temp, 0, temp.length);
+                items = temp;
+            }
+
+            categories.put(category, items);
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        for (Map.Entry<String, String[]> entry : categories.entrySet()) {
+            jsonObject.put(entry.getKey(), new JSONArray(entry.getValue()));
+        }
+
+        return jsonObject.toString(4);
     }
 }
 
