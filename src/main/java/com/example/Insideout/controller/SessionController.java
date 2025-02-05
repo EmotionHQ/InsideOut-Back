@@ -54,9 +54,19 @@ public class SessionController {
     }
 
     @DeleteMapping("/session/{sessionId}/delete")
-    public ResponseEntity<String> deleteSession(@PathVariable Long sessionId) {
-        sessionService.deleteSession(sessionId);
-        return ResponseEntity.ok("Session deleted successfully.");
+    public ResponseEntity<String> deleteSession(@RequestHeader("Authorization") String token,
+                                                @PathVariable Long sessionId) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            sessionService.deleteSession(userId, sessionId);
+            return ResponseEntity.ok("Session deleted successfully.");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+        //sessionService.deleteSession(sessionId);
+        //return ResponseEntity.ok("Session deleted successfully.");
     }
 
 

@@ -10,8 +10,10 @@ import com.example.Insideout.entity.Message;
 import com.example.Insideout.entity.Message.AuthorType;
 import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.Session.AgreementType;
+import com.example.Insideout.entity.User;
 import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
+import com.example.Insideout.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.util.Comparator;
 import java.util.List;
@@ -22,12 +24,15 @@ import org.springframework.stereotype.Service;
 public class SessionService {
 
     private final SessionRepository sessionRepository;
+    private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final FastApiClient fastApiClient;
 
-    public SessionService(SessionRepository sessionRepository, MessageRepository messageRepository,
+    public SessionService(SessionRepository sessionRepository, UserRepository userRepository,
+                          MessageRepository messageRepository,
                           FastApiClient fastApiClient) {
         this.sessionRepository = sessionRepository;
+        this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.fastApiClient = fastApiClient;
     }
@@ -56,7 +61,9 @@ public class SessionService {
      * 세션 삭제
      */
     @Transactional
-    public void deleteSession(Long sessionId) {
+    public void deleteSession(String userId, Long sessionId) {
+        User currentUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
         Session session = getSession(sessionId);
 
         // 관련 메시지 먼저 삭제
