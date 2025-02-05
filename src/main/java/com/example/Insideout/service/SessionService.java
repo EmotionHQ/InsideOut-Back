@@ -43,6 +43,12 @@ public class SessionService {
      */
     @Transactional
     public SessionResponse createNewSession(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (!user.getRole().equals(Role.USER)) {
+            throw new SecurityException("USER 만 상담이 가능합니다");
+        }
         // 새로운 세션 생성
         Session session = new Session();
         session.setUserId(userId);
