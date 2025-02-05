@@ -11,6 +11,7 @@ import com.example.Insideout.service.ChatImageUploadService;
 import com.example.Insideout.service.JwtUtil;
 import com.example.Insideout.service.SessionService;
 import io.jsonwebtoken.JwtException;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,10 +68,20 @@ public class SessionController {
         }
     }
 
-
+    @Operation(
+            summary = "유저의 세션 조회",
+            description = "상담창 세션 조회, 관리자가 유저 세션 조회"
+    )
     @GetMapping("/sessions")
-    public List<SessionInfo> getUserSessions(@RequestParam String userId) {
-        return sessionService.getSessionsByUserId(userId);
+    public ResponseEntity<List<SessionInfo>> getUserSessions(@RequestHeader("Authorization") String token) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(sessionService.getSessionsByUserId(userId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/{sessionId}/messages")
