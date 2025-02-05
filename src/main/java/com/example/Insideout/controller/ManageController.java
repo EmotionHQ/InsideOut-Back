@@ -10,6 +10,9 @@ import com.example.Insideout.service.DepartmentService;
 import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.UserService;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,14 +35,28 @@ public class ManageController {
         this.departmentService = departmentService;
     }
 
+    /**
+     * 매니저 아이디로 부서원 정보 반환 (부서 관리자)
+     */
     @GetMapping(value = "/department/users", params = "userId")
-    public List<UserInfoResponse> getUsersInSameDepartment(@RequestParam String userId) {
-        return departmentService.getUsersInSameDepartment(userId);
+    public Page<UserInfoResponse> getUsersInSameDepartment(
+            @RequestParam String userId,
+            @RequestParam(required = false) String memberName,
+            @PageableDefault(size = 4, sort = "name") Pageable pageable
+    ) {
+        return departmentService.getUsersInSameDepartment(userId, memberName, pageable);
     }
 
+    /**
+     * 부서명으로 부서원 정보 반환 (웹 관리자)
+     */
     @GetMapping(value = "/department/users", params = "departmentName")
-    public List<UserInfoResponse> getUsersByDepartmentName(@RequestParam String departmentName) {
-        return departmentService.getUsersByDepartmentName(departmentName);
+    public Page<UserInfoResponse> getUsersByDepartmentName(
+            @RequestParam String departmentName,
+            @RequestParam(required = false) String memberName,
+            @PageableDefault(size = 5, sort = "name") Pageable pageable
+    ) {
+        return departmentService.getUsersByDepartmentName(departmentName, memberName, pageable);
     }
 
     @GetMapping("/accepted")
@@ -48,8 +65,11 @@ public class ManageController {
     }
 
     @GetMapping("/departments")
-    public List<DepartmentInfoResponse> getAllDepartmentsInfo() {
-        return departmentService.getAllDepartmentInfo();
+    public Page<DepartmentInfoResponse> getAllDepartmentsInfo(
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 4, sort = "deptCode") Pageable pageable
+    ) {
+        return departmentService.getAllDepartmentInfo(keyword, pageable);
     }
 
     @GetMapping("/statistics/ors")
