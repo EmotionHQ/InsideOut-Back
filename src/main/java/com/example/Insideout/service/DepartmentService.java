@@ -239,7 +239,7 @@ public class DepartmentService {
         List<String> userIds = userRepository.findAllByDeptCode(deptCode)
                 .stream().map(User::getUserId).toList();
 
-        // 최근 30일 동안 생성된, AGREEMENT = ACCEPTED인 세션 조회
+        // 최근 30일 동안 생성된 세션 조회
         List<Long> sessionIds = sessionRepository.findAcceptedSessions(userIds, LocalDateTime.now().minusDays(30));
 
         if (sessionIds.isEmpty()) {
