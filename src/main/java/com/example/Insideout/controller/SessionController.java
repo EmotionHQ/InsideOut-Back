@@ -61,12 +61,10 @@ public class SessionController {
             sessionService.deleteSession(userId, sessionId);
             return ResponseEntity.ok("Session deleted successfully.");
         } catch (JwtException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        //sessionService.deleteSession(sessionId);
-        //return ResponseEntity.ok("Session deleted successfully.");
     }
 
 

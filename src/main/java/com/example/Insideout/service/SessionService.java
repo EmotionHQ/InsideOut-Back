@@ -11,6 +11,7 @@ import com.example.Insideout.entity.Message.AuthorType;
 import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.Session.AgreementType;
 import com.example.Insideout.entity.User;
+import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
@@ -62,10 +63,13 @@ public class SessionService {
      */
     @Transactional
     public void deleteSession(String userId, Long sessionId) {
-        User currentUser = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
         Session session = getSession(sessionId);
 
+        if (!user.getRole().equals(Role.ADMIN)) {
+            throw new SecurityException("권한이 없습니다. 세션을 삭제하려면 ADMIN 권한이 필요합니다.");
+        }
         // 관련 메시지 먼저 삭제
         messageRepository.deleteBySession(session);
 
