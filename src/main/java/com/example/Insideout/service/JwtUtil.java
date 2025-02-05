@@ -68,4 +68,21 @@ public class JwtUtil {
             return false;
         }
     }
+
+    /**
+     * JWT 유효성 검증 및 userId 추출
+     */
+    public String validateAndExtractUserId(String authorizationToken) {
+        if (authorizationToken == null || !authorizationToken.startsWith("Bearer ")) {
+            throw new JwtException("Invalid Authorization header format");
+        }
+
+        String token = authorizationToken.substring(7);
+
+        if (!validateToken(token)) {
+            throw new JwtException("Invalid or expired token");
+        }
+
+        return extractUserId(token);
+    }
 }

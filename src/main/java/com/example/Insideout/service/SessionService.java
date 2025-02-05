@@ -2,7 +2,6 @@ package com.example.Insideout.service;
 
 import com.example.Insideout.dto.MessageRequest;
 import com.example.Insideout.dto.MessageResponse;
-import com.example.Insideout.dto.SessionCreationRequest;
 import com.example.Insideout.dto.SessionIdResponse;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
@@ -37,10 +36,10 @@ public class SessionService {
     세션 생성
      */
     @Transactional
-    public SessionResponse createNewSession(SessionCreationRequest requestDTO) {
+    public SessionResponse createNewSession(String userId) {
         // 새로운 세션 생성
         Session session = new Session();
-        session.setUserId(requestDTO.getUserId());
+        session.setUserId(userId);
         session = sessionRepository.save(session);
 
         // 초기 메시지 생성

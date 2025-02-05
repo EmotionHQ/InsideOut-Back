@@ -3,14 +3,16 @@ package com.example.Insideout.controller;
 import com.example.Insideout.dto.MessageRequest;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.ORSRequest;
-import com.example.Insideout.dto.SessionCreationRequest;
 import com.example.Insideout.dto.SessionEndRequest;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
 import com.example.Insideout.dto.UploadFileResponse;
-import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.ChatImageUploadService;
+import com.example.Insideout.service.JwtUtil;
+import com.example.Insideout.service.SessionService;
+import io.jsonwebtoken.JwtException;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +20,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/chat")
@@ -30,15 +32,25 @@ public class SessionController {
 
     private final SessionService sessionService;
     private final ChatImageUploadService chatImageUploadService;
+    private final JwtUtil jwtUtil;
 
-    public SessionController(SessionService sessionService, ChatImageUploadService chatImageUploadService) {
+    public SessionController(SessionService sessionService, ChatImageUploadService chatImageUploadService,
+                             JwtUtil jwtUtil) {
         this.sessionService = sessionService;
         this.chatImageUploadService = chatImageUploadService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/session/create")
-    public SessionResponse createSession(@RequestBody SessionCreationRequest requestDTO) {
-        return sessionService.createNewSession(requestDTO);
+    public ResponseEntity<SessionResponse> createSession(@RequestHeader("Authorization") String token) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(sessionService.createNewSession(userId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @DeleteMapping("/session/{sessionId}/delete")
@@ -88,7 +100,8 @@ public class SessionController {
             String imageUrl = chatImageUploadService.uploadImage(image);
             return ResponseEntity.ok(new UploadFileResponse(null, image.getOriginalFilename(), imageUrl, "이미지 업로드 성공"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new UploadFileResponse(null, null, null, "이미지 업로드 실패: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new UploadFileResponse(null, null, null, "이미지 업로드 실패: " + e.getMessage()));
         }
     }
 }
