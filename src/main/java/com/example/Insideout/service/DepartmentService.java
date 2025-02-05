@@ -240,7 +240,7 @@ public class DepartmentService {
                 .stream().map(User::getUserId).toList();
 
         // 최근 30일 동안 생성된 세션 조회
-        List<Long> sessionIds = sessionRepository.findAcceptedSessions(userIds, LocalDateTime.now().minusDays(30));
+        List<Long> sessionIds = sessionRepository.findSessions(userIds, LocalDateTime.now().minusDays(30));
 
         if (sessionIds.isEmpty()) {
             return "부서의 상담 세션이 존재하지 않습니다";

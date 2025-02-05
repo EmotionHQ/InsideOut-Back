@@ -1,5 +1,6 @@
 package com.example.Insideout.service;
 
+import com.example.Insideout.dto.ImprovementsResponse;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.SessionSummaryResponse;
 import java.time.LocalDateTime;
@@ -62,7 +63,8 @@ public class FastApiClient {
 //        String url = "http://localhost:8000/api/department/improvements";
         String url = "https://insideout-ai-production.up.railway.app/api/department/improvements";
         Map<String, List<Long>> request = Map.of("sessionIds", sessionIds);
+        ImprovementsResponse improvements = restTemplate.postForObject(url, request, ImprovementsResponse.class);
 
-        return restTemplate.postForObject(url, request, String.class);
+        return improvements != null ? improvements.getImprovements() : null;
     }
 }

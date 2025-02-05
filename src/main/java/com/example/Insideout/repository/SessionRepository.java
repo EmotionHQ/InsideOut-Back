@@ -30,7 +30,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     Optional<Session> findBySessionId(Long sessionId);
 
     @Query("SELECT s.sessionId FROM Session s WHERE s.userId IN :userIds AND s.createdAt >= :startDate")
-    List<Long> findAcceptedSessions(List<String> userIds, LocalDateTime startDate);
+    List<Long> findSessions(List<String> userIds, LocalDateTime startDate);
 
     void deleteAllByUserId(String userId);
 }
