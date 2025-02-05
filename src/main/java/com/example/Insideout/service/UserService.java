@@ -87,7 +87,7 @@ public class UserService implements UserDetailsService {
 
     public User findByUserId(String userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> new UsernameNotFoundException("해당 아이디를 찾을 수 없습니다: " + userId));
     }
 
     public boolean verifyPassword(String userId, String password) {

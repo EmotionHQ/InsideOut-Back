@@ -5,6 +5,7 @@ import com.example.Insideout.dto.AuthResponse;
 import com.example.Insideout.entity.User;
 import com.example.Insideout.service.JwtUtil;
 import com.example.Insideout.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +34,7 @@ public class AuthController {
      * @return JWT 토큰을 포함한 응답
      */
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody AuthRequest authRequest) {
+    public AuthResponse login(@Valid @RequestBody AuthRequest authRequest) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getUserId(), authRequest.getPassword())
