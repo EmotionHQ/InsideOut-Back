@@ -9,6 +9,8 @@ import com.example.Insideout.entity.User;
 import com.example.Insideout.service.JwtUtil;
 import com.example.Insideout.service.SessionService;
 import com.example.Insideout.service.UserService;
+import io.jsonwebtoken.JwtException;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -110,18 +112,37 @@ public class UserController {
         }
     }
 
+    @Operation(
+            description = "ADMIN이 USER를 삭제할 수 있는 기능 (MANAGER X)"
+    )
     @DeleteMapping("/{userId}/delete")
-    public ResponseEntity<String> deleteUser(@PathVariable String userId) {
-        userService.deleteUserById(userId);
-        return ResponseEntity.ok("유저 삭제 완료");
+    public ResponseEntity<String> deleteUser(@RequestHeader("Authorization") String token,
+                                             @PathVariable String userId) {
+        try {
+            String jwtUserId = jwtUtil.validateAndExtractUserId(token);
+            userService.deleteUserById(jwtUserId, userId);
+            return ResponseEntity.ok("유저 삭제 완료");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
-    /**
-     * 요약, 개선 사항, 상태, ORS 반환 (마이페이지 상담 결과)
-     */
-    @GetMapping("/summary/{userId}")
-    public List<SessionSummaryResponse> getSessionSummary(@PathVariable String userId) {
-        return sessionService.getSessionDetails(userId);
+    @Operation(
+            description = "요약, 개선 사항, 상태, ORS 반환 (마이페이지 상담 결과)"
+    )
+    @GetMapping("/summary")
+    public ResponseEntity<List<SessionSummaryResponse>> getSessionSummary(
+            @RequestHeader("Authorization") String token) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(sessionService.getSessionDetails(userId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }
 

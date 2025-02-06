@@ -5,6 +5,7 @@ import com.example.Insideout.dto.UserDto;
 import com.example.Insideout.dto.UserUpdateDto;
 import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.User;
+import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
@@ -87,7 +88,7 @@ public class UserService implements UserDetailsService {
 
     public User findByUserId(String userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> new UsernameNotFoundException("해당 아이디를 찾을 수 없습니다: " + userId));
     }
 
     public boolean verifyPassword(String userId, String password) {
@@ -120,9 +121,23 @@ public class UserService implements UserDetailsService {
      * 사용자 삭제 (연결된 세션, 메세지 삭제)
      */
     @Transactional
-    public void deleteUserById(String userId) {
+    public void deleteUserById(String jwtUserId, String userId) {
         if (!userRepository.existsByUserId(userId)) {
             throw new IllegalArgumentException("해당 유저가 존재하지 않습니다: " + userId);
+        }
+
+        User jwtUser = userRepository.findByUserId(jwtUserId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (!jwtUser.getRole().equals(Role.ADMIN)) {
+            throw new SecurityException("권한이 없습니다. 사용자를 삭제하려면 ADMIN 권한이 필요합니다.");
+        }
+
+        User user = userRepository.findByUserId(jwtUserId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (!user.getRole().equals(Role.USER)) {
+            throw new SecurityException("USER 만 삭제가 가능합니다");
         }
 
         List<Session> userSessions = sessionRepository.findAllByUserId(userId);

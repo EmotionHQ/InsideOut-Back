@@ -2,7 +2,8 @@ package com.example.Insideout.service;
 
 import com.example.Insideout.dto.MessageRequest;
 import com.example.Insideout.dto.MessageResponse;
-import com.example.Insideout.dto.SessionCreationRequest;
+import com.example.Insideout.dto.ORSRequest;
+import com.example.Insideout.dto.SessionEndRequest;
 import com.example.Insideout.dto.SessionIdResponse;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
@@ -11,24 +12,32 @@ import com.example.Insideout.entity.Message;
 import com.example.Insideout.entity.Message.AuthorType;
 import com.example.Insideout.entity.Session;
 import com.example.Insideout.entity.Session.AgreementType;
+import com.example.Insideout.entity.User;
+import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
+import com.example.Insideout.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SessionService {
 
     private final SessionRepository sessionRepository;
+    private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final FastApiClient fastApiClient;
 
-    public SessionService(SessionRepository sessionRepository, MessageRepository messageRepository,
+    public SessionService(SessionRepository sessionRepository, UserRepository userRepository,
+                          MessageRepository messageRepository,
                           FastApiClient fastApiClient) {
         this.sessionRepository = sessionRepository;
+        this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.fastApiClient = fastApiClient;
     }
@@ -37,10 +46,16 @@ public class SessionService {
     세션 생성
      */
     @Transactional
-    public SessionResponse createNewSession(SessionCreationRequest requestDTO) {
+    public SessionResponse createNewSession(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (!user.getRole().equals(Role.USER)) {
+            throw new SecurityException("USER 만 상담이 가능합니다");
+        }
         // 새로운 세션 생성
         Session session = new Session();
-        session.setUserId(requestDTO.getUserId());
+        session.setUserId(userId);
         session = sessionRepository.save(session);
 
         // 초기 메시지 생성
@@ -57,9 +72,14 @@ public class SessionService {
      * 세션 삭제
      */
     @Transactional
-    public void deleteSession(Long sessionId) {
+    public void deleteSession(String userId, Long sessionId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
         Session session = getSession(sessionId);
 
+        if (!user.getRole().equals(Role.ADMIN)) {
+            throw new SecurityException("권한이 없습니다. 세션을 삭제하려면 ADMIN 권한이 필요합니다.");
+        }
         // 관련 메시지 먼저 삭제
         messageRepository.deleteBySession(session);
 
@@ -86,10 +106,14 @@ public class SessionService {
     ORS 점수 업데이트
      */
     @Transactional
-    public void updateOrsScore(Long sessionId, Integer orsScore) {
-        Session session = getSession(sessionId);
+    public void updateOrsScore(ORSRequest request, String userId) {
+        if (!userId.equals(request.getUserId())) {
+            throw new AccessDeniedException("사용자 인증 실패");
+        }
 
-        session.setOrsScore(orsScore);
+        Session session = getSession(request.getSessionId());
+
+        session.setOrsScore(request.getOrsScore());
 
         sessionRepository.save(session);
     }
@@ -98,14 +122,17 @@ public class SessionService {
     세션 종료 - srs, 동의 여부 업데이트
      */
     @Transactional
-    public void endSession(Long sessionId, Integer srsScore, Session.AgreementType agreement) {
-        Session session = getSession(sessionId);
+    public void endSession(SessionEndRequest request, String userId) {
+        if (!userId.equals(request.getUserId())) {
+            throw new AccessDeniedException("사용자 인증 실패");
+        }
+        Session session = getSession(request.getSessionId());
 
         if (session.isClosed()) {
             throw new IllegalStateException("이미 종료된 세션입니다");
         }
-        session.setSrsScore(srsScore);
-        session.setAgreement(agreement);
+        session.setSrsScore(request.getSrsScore());
+        session.setAgreement(request.getAgreement());
         session.setClosed(true);
 
         sessionRepository.save(session);
@@ -129,7 +156,9 @@ public class SessionService {
         userMessage.setSession(session);
         userMessage.setContent(messageRequest.getContent());
         userMessage.setAuthorType(Message.AuthorType.USER);
-        userMessage.setCreatedAt(messageRequest.getCreatedAt());
+        userMessage.setCreatedAt(
+                messageRequest.getCreatedAt() != null ? messageRequest.getCreatedAt() : LocalDateTime.now()
+        );
         userMessage.setImageUrl(messageRequest.getImageUrl());
         messageRepository.save(userMessage);
 
@@ -150,7 +179,14 @@ public class SessionService {
     /**
      * user의 동의 여부 ACCEPTED 세션들 반환
      */
-    public List<SessionIdResponse> getAcceptedSessionsByUserId(String userId) {
+    public List<SessionIdResponse> getAcceptedSessionsByUserId(String jwtUserId, String userId) {
+        User jwtUser = userRepository.findByUserId(jwtUserId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + jwtUserId));
+
+        if (jwtUser.getRole() == Role.USER) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
+        
         List<Session> acceptedSessions = sessionRepository.findByUserIdAndAgreement(userId, AgreementType.ACCEPTED);
 
         return acceptedSessions.stream()

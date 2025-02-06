@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SessionEndRequest {
+    private String userId;
     private Long sessionId;
     private Integer srsScore;
     private AgreementType agreement;

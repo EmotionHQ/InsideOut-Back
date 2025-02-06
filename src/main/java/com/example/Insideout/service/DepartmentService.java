@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -106,7 +108,14 @@ public class DepartmentService {
     /**
      * 부서 정보 + 부서 매니저 이름 반환
      */
-    public Page<DepartmentInfoResponse> getAllDepartmentInfo(String keyword, Pageable pageable) {
+    public Page<DepartmentInfoResponse> getAllDepartmentInfo(String userId, String keyword, Pageable pageable) {
+
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (user.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
 
         if (keyword == null || keyword.isEmpty()) {
             return departmentRepository.findAllDepartmentsWithManagers(pageable);
@@ -138,8 +147,15 @@ public class DepartmentService {
     /**
      * 부서에 속한 모든 유저 정보 반환
      */
-    public Page<UserInfoResponse> getUsersByDepartmentName(String departmentName, String memberName,
+    public Page<UserInfoResponse> getUsersByDepartmentName(String userId, String departmentName, String memberName,
                                                            Pageable pageable) {
+
+        User manager = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (manager.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
 
         Department department = departmentRepository.findByDepartment(departmentName)
                 .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다: " + departmentName));
@@ -165,6 +181,10 @@ public class DepartmentService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
 
+        if (user.getRole() == Role.USER) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
+
         String deptCode = user.getDeptCode();
 
         List<User> usersInDepartment = userRepository.findAllByDeptCode(deptCode);
@@ -182,8 +202,14 @@ public class DepartmentService {
     /**
      * 전체 유저의 SRS 평균, 분산 (주간 단위) 반환
      */
-    public SrsStatisticsResponse getSrsStatistics() {
-        List<Session> closedSessions = sessionRepository.findAllByIsClosedTrue();
+    public SrsStatisticsResponse getSrsStatistics(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (user.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
+        List<Session> closedSessions = sessionRepository.findAllByIsClosedTrueOrderByCreatedAtAsc();
 
         Map<LocalDate, SrsStats> weeklyStats = calculateWeeklyStats(closedSessions, Session::getSrsScore);
 
@@ -205,7 +231,8 @@ public class DepartmentService {
                         Collectors.mapping(scoreExtractor, Collectors.toList())
                 ));
 
-        Map<LocalDate, T> weeklyStats = new HashMap<>();
+        // 정렬을 위한 TreeMap 사용
+        Map<LocalDate, T> weeklyStats = new TreeMap<>();
 
         for (Map.Entry<LocalDate, List<Integer>> entry : weeklyScores.entrySet()) {
             double average = entry.getValue().stream()
@@ -229,6 +256,12 @@ public class DepartmentService {
      */
     public String processImprovements(String userId) {
 
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+        if (user.getRole() != Role.MANAGER) {
+            throw new IllegalArgumentException("해당 유저는 부서장이 아닙니다.");
+        }
+        
         String deptCode = userRepository.findByUserId(userId)
                 .map(User::getDeptCode)
                 .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다"));
