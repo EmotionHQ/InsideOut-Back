@@ -60,7 +60,7 @@ public class SessionController {
         try {
             String userId = jwtUtil.validateAndExtractUserId(token);
             sessionService.deleteSession(userId, sessionId);
-            return ResponseEntity.ok("Session deleted successfully.");
+            return ResponseEntity.ok("세션 삭제 성공");
         } catch (JwtException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
@@ -85,14 +85,33 @@ public class SessionController {
     }
 
     @GetMapping("/{sessionId}/messages")
-    public List<MessageResponse> getSessionMessages(@PathVariable Long sessionId) {
-        return sessionService.getMessagesBySessionId(sessionId);
+    public ResponseEntity<List<MessageResponse>> getSessionMessages(@RequestHeader("Authorization") String token,
+                                                                    @PathVariable Long sessionId) {
+        try {
+            jwtUtil.validateToken(token);
+            return ResponseEntity.ok(sessionService.getMessagesBySessionId(sessionId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
+    @Operation(
+            description = "상담 세션 시작 시 ors 점수 전달"
+    )
     @PutMapping("/ORS")
-    public ResponseEntity<String> updateOrsScore(@RequestBody ORSRequest request) {
-        sessionService.updateOrsScore(request.getSessionId(), request.getOrsScore());
-        return ResponseEntity.ok("ORS score updated successfully.");
+    public ResponseEntity<String> updateOrsScore(@RequestHeader("Authorization") String token,
+                                                 @RequestBody ORSRequest request) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            sessionService.updateOrsScore(request, userId);
+            return ResponseEntity.ok("ORS 점수 등록 성공");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     /**

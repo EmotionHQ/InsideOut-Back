@@ -74,13 +74,13 @@ public class JwtUtil {
      */
     public String validateAndExtractUserId(String authorizationToken) {
         if (authorizationToken == null || !authorizationToken.startsWith("Bearer ")) {
-            throw new JwtException("Invalid Authorization header format");
+            throw new JwtException("인증 포맷이 일치하지 않습니다");
         }
 
         String token = authorizationToken.substring(7);
 
         if (!validateToken(token)) {
-            throw new JwtException("Invalid or expired token");
+            throw new JwtException("유효하지 않는 토큰입니다");
         }
 
         return extractUserId(token);

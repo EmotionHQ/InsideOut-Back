@@ -2,6 +2,7 @@ package com.example.Insideout.service;
 
 import com.example.Insideout.dto.MessageRequest;
 import com.example.Insideout.dto.MessageResponse;
+import com.example.Insideout.dto.ORSRequest;
 import com.example.Insideout.dto.SessionIdResponse;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
@@ -19,6 +20,7 @@ import jakarta.transaction.Transactional;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -102,10 +104,14 @@ public class SessionService {
     ORS 점수 업데이트
      */
     @Transactional
-    public void updateOrsScore(Long sessionId, Integer orsScore) {
-        Session session = getSession(sessionId);
+    public void updateOrsScore(ORSRequest request, String userId) {
+        if (!userId.equals(request.getUserId())) {
+            throw new AccessDeniedException("사용자 인증 실패");
+        }
 
-        session.setOrsScore(orsScore);
+        Session session = getSession(request.getSessionId());
+
+        session.setOrsScore(request.getOrsScore());
 
         sessionRepository.save(session);
     }
