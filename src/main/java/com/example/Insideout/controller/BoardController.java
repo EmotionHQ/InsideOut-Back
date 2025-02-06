@@ -74,16 +74,11 @@ public class BoardController {
 
     // 내 문의글 조회
     @GetMapping("/inquiry/myPost")
-    public ResponseEntity<Page<BoardResponse>> getMyInquiryBoard(@RequestHeader String token,
+    public ResponseEntity<Page<BoardResponse>> getMyInquiryBoard(@RequestHeader("Authorization") String token,
                                                                  @RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size) {
         try {
-            if (!jwtUtil.validateToken(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-            }
-
-            String userId = jwtUtil.extractUserId(token);
-
+            String userId = jwtUtil.validateAndExtractUserId(token);
             Page<BoardResponse> responses = boardService.getMyInquiryBoards(userId, page, size);
             return ResponseEntity.ok(responses);
         } catch (JwtException e) {
