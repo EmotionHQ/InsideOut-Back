@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -209,7 +210,7 @@ public class DepartmentService {
         if (user.getRole() != Role.ADMIN) {
             throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
         }
-        List<Session> closedSessions = sessionRepository.findAllByIsClosedTrue();
+        List<Session> closedSessions = sessionRepository.findAllByIsClosedTrueOrderByCreatedAtAsc();
 
         Map<LocalDate, SrsStats> weeklyStats = calculateWeeklyStats(closedSessions, Session::getSrsScore);
 
@@ -231,7 +232,8 @@ public class DepartmentService {
                         Collectors.mapping(scoreExtractor, Collectors.toList())
                 ));
 
-        Map<LocalDate, T> weeklyStats = new HashMap<>();
+        // 정렬을 위한 TreeMap 사용
+        Map<LocalDate, T> weeklyStats = new TreeMap<>();
 
         for (Map.Entry<LocalDate, List<Integer>> entry : weeklyScores.entrySet()) {
             double average = entry.getValue().stream()
