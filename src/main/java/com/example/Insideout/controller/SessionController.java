@@ -149,10 +149,14 @@ public class SessionController {
     }
 
     @PostMapping("/upload-image")
-    public ResponseEntity<UploadFileResponse> uploadImage(@RequestParam("image") MultipartFile image) {
+    public ResponseEntity<UploadFileResponse> uploadImage(@RequestHeader("Authorization") String token,
+                                                          @RequestParam("image") MultipartFile image) {
         try {
+            jwtUtil.validateToken(token);
             String imageUrl = chatImageUploadService.uploadImage(image);
             return ResponseEntity.ok(new UploadFileResponse(null, image.getOriginalFilename(), imageUrl, "이미지 업로드 성공"));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new UploadFileResponse(null, null, null, "이미지 업로드 실패: " + e.getMessage()));
