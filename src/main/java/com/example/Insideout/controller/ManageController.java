@@ -83,9 +83,20 @@ public class ManageController {
         }
     }
 
+    @Operation(
+            description = "유저가 동의한 세션 리스트 반환"
+    )
     @GetMapping("/accepted")
-    public List<SessionIdResponse> getAcceptedSessions(@RequestParam String userId) {
-        return sessionService.getAcceptedSessionsByUserId(userId);
+    public ResponseEntity<List<SessionIdResponse>> getAcceptedSessions(@RequestHeader("Authorization") String token,
+                                                                       @RequestParam String userId) {
+        try {
+            String jwtUserId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(sessionService.getAcceptedSessionsByUserId(jwtUserId, userId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/departments")

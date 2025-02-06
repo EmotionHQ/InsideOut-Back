@@ -179,7 +179,14 @@ public class SessionService {
     /**
      * user의 동의 여부 ACCEPTED 세션들 반환
      */
-    public List<SessionIdResponse> getAcceptedSessionsByUserId(String userId) {
+    public List<SessionIdResponse> getAcceptedSessionsByUserId(String jwtUserId, String userId) {
+        User jwtUser = userRepository.findByUserId(jwtUserId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + jwtUserId));
+
+        if (jwtUser.getRole() == Role.USER) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
+        
         List<Session> acceptedSessions = sessionRepository.findByUserIdAndAgreement(userId, AgreementType.ACCEPTED);
 
         return acceptedSessions.stream()
