@@ -114,9 +114,9 @@ public class SessionController {
         }
     }
 
-    /**
-     * 세션 종료 srs점수, 동의 여부 업데이트 세션 상담 내용 요약 및 저장 (fast API 연결)
-     */
+    @Operation(
+            description = "세션 종료 srs점수, 동의 여부 업데이트 세션 상담 내용 요약 및 저장 (fast API 연결)"
+    )
     @PutMapping("/session/terminate")
     public ResponseEntity<String> updateSessionDetails(@RequestBody SessionEndRequest request) {
         sessionService.endSession(request.getSessionId(), request.getSrsScore(), request.getAgreement());
@@ -128,8 +128,16 @@ public class SessionController {
      * 프론트 입력 메세지 DB저장 -> fast API로 전달 -> 반환값 DB저장 -> 프론트로 반환
      */
     @PostMapping("/send")
-    public MessageResponse sendMessage(@RequestBody MessageRequest messageRequest) {
-        return sessionService.processMessage(messageRequest);
+    public ResponseEntity<MessageResponse> sendMessage(@RequestHeader("Authorization") String token,
+                                                       @RequestBody MessageRequest messageRequest) {
+        try {
+            jwtUtil.validateToken(token);
+            return ResponseEntity.ok(sessionService.processMessage(messageRequest));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PostMapping("/upload-image")

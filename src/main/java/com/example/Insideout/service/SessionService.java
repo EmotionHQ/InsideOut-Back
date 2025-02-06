@@ -17,6 +17,7 @@ import com.example.Insideout.repository.MessageRepository;
 import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -151,7 +152,9 @@ public class SessionService {
         userMessage.setSession(session);
         userMessage.setContent(messageRequest.getContent());
         userMessage.setAuthorType(Message.AuthorType.USER);
-        userMessage.setCreatedAt(messageRequest.getCreatedAt());
+        userMessage.setCreatedAt(
+                messageRequest.getCreatedAt() != null ? messageRequest.getCreatedAt() : LocalDateTime.now()
+        );
         userMessage.setImageUrl(messageRequest.getImageUrl());
         messageRepository.save(userMessage);
 
