@@ -131,10 +131,10 @@ public class SessionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
-
-    /**
-     * 프론트 입력 메세지 DB저장 -> fast API로 전달 -> 반환값 DB저장 -> 프론트로 반환
-     */
+    
+    @Operation(
+            description = "프론트 입력 메세지 DB저장 -> fast API로 전달 -> 반환값 DB저장 -> 프론트로 반환"
+    )
     @PostMapping("/send")
     public ResponseEntity<MessageResponse> sendMessage(@RequestHeader("Authorization") String token,
                                                        @RequestBody MessageRequest messageRequest) {
