@@ -115,9 +115,19 @@ public class ManageController {
         }
     }
 
+    @Operation(
+            description = "부서의 ors 통계 (평균, 분산)"
+    )
     @GetMapping("/statistics/ors")
-    public OrsStatisticsResponse getOrsStatistics(@RequestParam String userId) {
-        return departmentService.getOrsStatisticsByUserId(userId);
+    public ResponseEntity<OrsStatisticsResponse> getOrsStatistics(@RequestHeader("Authorization") String token) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(departmentService.getOrsStatisticsByUserId(userId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/srs")
@@ -125,9 +135,19 @@ public class ManageController {
         return userService.getSrsByUserId(userId);
     }
 
+    @Operation(
+            description = "모든 유저의 srs 통계 (평균, 분산)"
+    )
     @GetMapping("/statistics/srs")
-    public SrsStatisticsResponse getSrsStatistics() {
-        return departmentService.getSrsStatistics();
+    public ResponseEntity<SrsStatisticsResponse> getSrsStatistics(@RequestHeader("Authorization") String token) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(departmentService.getSrsStatistics(userId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PostMapping("/department/improvements/{userId}")

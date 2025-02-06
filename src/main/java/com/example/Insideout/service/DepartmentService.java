@@ -181,6 +181,10 @@ public class DepartmentService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
 
+        if (user.getRole() == Role.USER) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
+
         String deptCode = user.getDeptCode();
 
         List<User> usersInDepartment = userRepository.findAllByDeptCode(deptCode);
@@ -198,7 +202,13 @@ public class DepartmentService {
     /**
      * 전체 유저의 SRS 평균, 분산 (주간 단위) 반환
      */
-    public SrsStatisticsResponse getSrsStatistics() {
+    public SrsStatisticsResponse getSrsStatistics(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (user.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
         List<Session> closedSessions = sessionRepository.findAllByIsClosedTrue();
 
         Map<LocalDate, SrsStats> weeklyStats = calculateWeeklyStats(closedSessions, Session::getSrsScore);
