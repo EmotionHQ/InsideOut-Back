@@ -140,8 +140,15 @@ public class DepartmentService {
     /**
      * 부서에 속한 모든 유저 정보 반환
      */
-    public Page<UserInfoResponse> getUsersByDepartmentName(String departmentName, String memberName,
+    public Page<UserInfoResponse> getUsersByDepartmentName(String userId, String departmentName, String memberName,
                                                            Pageable pageable) {
+
+        User manager = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (manager.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
 
         Department department = departmentRepository.findByDepartment(departmentName)
                 .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다: " + departmentName));
