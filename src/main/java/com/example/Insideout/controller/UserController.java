@@ -129,12 +129,20 @@ public class UserController {
         }
     }
 
-    /**
-     * 요약, 개선 사항, 상태, ORS 반환 (마이페이지 상담 결과)
-     */
-    @GetMapping("/summary/{userId}")
-    public List<SessionSummaryResponse> getSessionSummary(@PathVariable String userId) {
-        return sessionService.getSessionDetails(userId);
+    @Operation(
+            description = "요약, 개선 사항, 상태, ORS 반환 (마이페이지 상담 결과)"
+    )
+    @GetMapping("/summary")
+    public ResponseEntity<List<SessionSummaryResponse>> getSessionSummary(
+            @RequestHeader("Authorization") String token) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(sessionService.getSessionDetails(userId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }
 
