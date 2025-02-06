@@ -14,10 +14,10 @@ import com.example.Insideout.entity.User.Role;
 import com.example.Insideout.repository.DepartmentRepository;
 import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -33,7 +33,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 
@@ -255,7 +254,6 @@ public class DepartmentService {
     /**
      * 부서 개선 사항 저장 및 반환
      */
-    @Transactional
     public String processImprovements(String userId) {
 
         User user = userRepository.findByUserId(userId)
@@ -268,11 +266,12 @@ public class DepartmentService {
                 .map(User::getDeptCode)
                 .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다"));
 
+        // 동일 부서의 모든 유저 ID 조회
         List<String> userIds = userRepository.findAllByDeptCode(deptCode)
                 .stream().map(User::getUserId).toList();
 
-        // 최근 30일 동안 생성된, AGREEMENT = ACCEPTED인 세션 조회
-        List<Long> sessionIds = sessionRepository.findAcceptedSessions(userIds, LocalDateTime.now().minusDays(30));
+        // 최근 30일 동안 생성된 세션 조회
+        List<Long> sessionIds = sessionRepository.findSessions(userIds, LocalDateTime.now().minusDays(30));
 
         if (sessionIds.isEmpty()) {
             return "부서의 상담 세션이 존재하지 않습니다";
@@ -281,30 +280,15 @@ public class DepartmentService {
         // FastAPI 호출하여 개선사항 가져오기
         String improvements = fastApiClient.getImprovements(sessionIds);
 
-        // 비동기 DB 저장
-        saveImprovementsAsync(deptCode, improvements);
+        if (improvements != null && !improvements.trim().isEmpty()) {
+            Department department = departmentRepository.findByDeptCode(deptCode)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 부서가 존재하지 않습니다."));
 
-        //프론트에 전달할 내용 파싱
-        improvements = parseToJSON(improvements);
-
-        return improvements;
-    }
-
-    @Async
-    @Transactional
-    public CompletableFuture<Void> saveImprovementsAsync(String deptCode, String improvements) {
-
-        if (improvements == null || improvements.trim().isEmpty()) {
-            return CompletableFuture.completedFuture(null);
+            department.setImprovements(improvements);
+            departmentRepository.save(department);
         }
 
-        Department department = departmentRepository.findByDeptCode(deptCode)
-                .orElseThrow(() -> new IllegalArgumentException("해당 부서가 존재하지 않습니다."));
-
-        department.setImprovements(improvements);
-        departmentRepository.save(department);
-
-        return CompletableFuture.completedFuture(null);
+        return parseToJSON(improvements);
     }
 
     /**
@@ -315,29 +299,31 @@ public class DepartmentService {
         Pattern pattern = Pattern.compile("\\[(.*?)\\]\\s*\\n(.*?)(?=(\\n\\[|$))", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(input);
 
-        Map<String, String[]> categories = new HashMap<>();
+        Map<String, List<String>> categories = new HashMap<>();
 
         while (matcher.find()) {
             String category = matcher.group(1).trim();
             String content = matcher.group(2).trim();
 
-            String[] items = content.split("\\n \\- ");
+            content = content.replace("-", "").trim();
+            String[] items = content.split("\\n");
 
-            if (items.length > 0 && items[0].isEmpty()) {
-                String[] temp = new String[items.length - 1];
-                System.arraycopy(items, 1, temp, 0, temp.length);
-                items = temp;
-            }
+            List<String> cleanedItems = Arrays.stream(items)
+                    .map(String::trim)
+                    .filter(item -> !item.isEmpty())
+                    .collect(Collectors.toList());
 
-            categories.put(category, items);
+            categories.put(category, cleanedItems);
         }
 
+        // JSON 객체로 변환
         JSONObject jsonObject = new JSONObject();
-        for (Map.Entry<String, String[]> entry : categories.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : categories.entrySet()) {
             jsonObject.put(entry.getKey(), new JSONArray(entry.getValue()));
         }
 
         return jsonObject.toString(4);
     }
+
 }
 

@@ -1,5 +1,6 @@
 package com.example.Insideout.service;
 
+import com.example.Insideout.dto.ImprovementsResponse;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.SessionSummaryResponse;
 import java.time.LocalDateTime;
@@ -45,7 +46,8 @@ public class FastApiClient {
      * Fast API에 sessionId 전달 > 개선사항, 상태, 요약 반환
      */
     public SessionSummaryResponse getSessionSummary(Long sessionId) {
-        String url = "http://localhost:8000/api/session/summary";
+//        String url = "http://localhost:8000/api/session/summary";
+        String url = "https://insideout-ai-production.up.railway.app/api/session/summary";
 
         Map<String, Long> requestBody = new HashMap<>();
         requestBody.put("sessionId", sessionId);
@@ -58,9 +60,11 @@ public class FastApiClient {
      * 부서원들의 세션 아이디들 전달 > 부서의 개선 사항 반환
      */
     public String getImprovements(List<Long> sessionIds) {
-        String url = "http://localhost:8000/api/department/improvements";
+//        String url = "http://localhost:8000/api/department/improvements";
+        String url = "https://insideout-ai-production.up.railway.app/api/department/improvements";
         Map<String, List<Long>> request = Map.of("sessionIds", sessionIds);
+        ImprovementsResponse improvements = restTemplate.postForObject(url, request, ImprovementsResponse.class);
 
-        return restTemplate.postForObject(url, request, String.class);
+        return improvements != null ? improvements.getImprovements() : null;
     }
 }
