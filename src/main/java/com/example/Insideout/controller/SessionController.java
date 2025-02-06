@@ -118,10 +118,18 @@ public class SessionController {
             description = "세션 종료 srs점수, 동의 여부 업데이트 세션 상담 내용 요약 및 저장 (fast API 연결)"
     )
     @PutMapping("/session/terminate")
-    public ResponseEntity<String> updateSessionDetails(@RequestBody SessionEndRequest request) {
-        sessionService.endSession(request.getSessionId(), request.getSrsScore(), request.getAgreement());
-        sessionService.SummarizeAndUpdateSession(request.getSessionId());
-        return ResponseEntity.ok("Session details updated successfully.");
+    public ResponseEntity<String> updateSessionDetails(@RequestHeader("Authorization") String token,
+                                                       @RequestBody SessionEndRequest request) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            sessionService.endSession(request, userId);
+            sessionService.SummarizeAndUpdateSession(request.getSessionId());
+            return ResponseEntity.ok("세션 종료");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     /**

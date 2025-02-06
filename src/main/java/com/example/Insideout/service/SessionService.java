@@ -3,6 +3,7 @@ package com.example.Insideout.service;
 import com.example.Insideout.dto.MessageRequest;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.ORSRequest;
+import com.example.Insideout.dto.SessionEndRequest;
 import com.example.Insideout.dto.SessionIdResponse;
 import com.example.Insideout.dto.SessionInfo;
 import com.example.Insideout.dto.SessionResponse;
@@ -121,14 +122,17 @@ public class SessionService {
     세션 종료 - srs, 동의 여부 업데이트
      */
     @Transactional
-    public void endSession(Long sessionId, Integer srsScore, Session.AgreementType agreement) {
-        Session session = getSession(sessionId);
+    public void endSession(SessionEndRequest request, String userId) {
+        if (!userId.equals(request.getUserId())) {
+            throw new AccessDeniedException("사용자 인증 실패");
+        }
+        Session session = getSession(request.getSessionId());
 
         if (session.isClosed()) {
             throw new IllegalStateException("이미 종료된 세션입니다");
         }
-        session.setSrsScore(srsScore);
-        session.setAgreement(agreement);
+        session.setSrsScore(request.getSrsScore());
+        session.setAgreement(request.getAgreement());
         session.setClosed(true);
 
         sessionRepository.save(session);
