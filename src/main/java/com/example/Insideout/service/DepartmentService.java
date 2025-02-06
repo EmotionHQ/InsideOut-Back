@@ -258,6 +258,12 @@ public class DepartmentService {
     @Transactional
     public String processImprovements(String userId) {
 
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+        if (user.getRole() != Role.MANAGER) {
+            throw new IllegalArgumentException("해당 유저는 부서장이 아닙니다.");
+        }
+        
         String deptCode = userRepository.findByUserId(userId)
                 .map(User::getDeptCode)
                 .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다"));

@@ -19,7 +19,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -150,8 +149,15 @@ public class ManageController {
         }
     }
 
-    @PostMapping("/department/improvements/{userId}")
-    public String processAndReturnImprovements(@PathVariable String userId) {
-        return departmentService.processImprovements(userId);
+    @PostMapping("/department/improvements")
+    public ResponseEntity<String> processAndReturnImprovements(@RequestHeader("Authorization") String token) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(departmentService.processImprovements(userId));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 }
