@@ -108,7 +108,14 @@ public class DepartmentService {
     /**
      * 부서 정보 + 부서 매니저 이름 반환
      */
-    public Page<DepartmentInfoResponse> getAllDepartmentInfo(String keyword, Pageable pageable) {
+    public Page<DepartmentInfoResponse> getAllDepartmentInfo(String userId, String keyword, Pageable pageable) {
+
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (user.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
 
         if (keyword == null || keyword.isEmpty()) {
             return departmentRepository.findAllDepartmentsWithManagers(pageable);

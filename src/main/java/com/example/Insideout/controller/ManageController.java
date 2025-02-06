@@ -100,11 +100,19 @@ public class ManageController {
     }
 
     @GetMapping("/departments")
-    public Page<DepartmentInfoResponse> getAllDepartmentsInfo(
+    public ResponseEntity<Page<DepartmentInfoResponse>> getAllDepartmentsInfo(
+            @RequestHeader("Authorization") String token,
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 4, sort = "deptCode") Pageable pageable
     ) {
-        return departmentService.getAllDepartmentInfo(keyword, pageable);
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            return ResponseEntity.ok(departmentService.getAllDepartmentInfo(userId, keyword, pageable));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/statistics/ors")
