@@ -102,7 +102,13 @@ public class BoardService {
     /*
     문의 게시판 전체 조회
      */
-    public Page<BoardResponse> getInquiryBoards(int page, int size) {
+    public Page<BoardResponse> getInquiryBoards(String userId, int page, int size) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
+
+        if (user.getRole() != User.Role.ADMIN) {
+            throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
+        }
         Pageable pageable = PageRequest.of(page, size);
         Page<Board> boards = boardRepository.findInquiryBoards(pageable);
 
@@ -146,16 +152,16 @@ public class BoardService {
     문의 상세 조회
      */
     @Transactional
-    public BoardResponse getInquiryDetail(Long inquiryId) {
+    public BoardResponse getInquiryDetail(String userId, Long inquiryId) {
         Board board = boardRepository.findInquiryBoards(inquiryId)
                 .orElseThrow(() -> new IllegalArgumentException("문의 게시글을 찾을 수 없습니다."));
 
-//        User requester = userRepository.findById(request.getUserId())
-//                .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
-//
-//        if (!board.getUserId().equals(request.getUserId()) && !requester.getRole().equals(User.Role.ADMIN)) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 조회 권한이 없습니다.");
-//        }
+        User requester = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청 유저를 찾을 수 없습니다."));
+
+        if (!board.getUserId().equals(userId) && !requester.getRole().equals(User.Role.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 조회 권한이 없습니다.");
+        }
 
         List<String> filePath = uploadFileRepository.findByBoard(board)
                 .stream()

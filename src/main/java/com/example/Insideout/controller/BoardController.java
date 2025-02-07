@@ -66,10 +66,18 @@ public class BoardController {
 
     //문의게시판 조회
     @GetMapping("/inquiry")
-    public ResponseEntity<Page<BoardResponse>> getInquiryBoard(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<BoardResponse>> getInquiryBoard(@RequestHeader("Authorization") String token,
+                                                               @RequestParam(defaultValue = "0") int page,
                                                                @RequestParam(defaultValue = "10") int size) {
-        Page<BoardResponse> responses = boardService.getInquiryBoards(page, size);
-        return ResponseEntity.ok(responses);
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            Page<BoardResponse> responses = boardService.getInquiryBoards(userId, page, size);
+            return ResponseEntity.ok(responses);
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // 내 문의글 조회
@@ -90,14 +98,23 @@ public class BoardController {
 
     // 문의 게시판 상세 조회
     @GetMapping("/inquiry/{inquiryId}")
-    private ResponseEntity<BoardResponse> getInquiryDetail(@PathVariable Long inquiryId) {
-        BoardResponse response = boardService.getInquiryDetail(inquiryId);
-        return ResponseEntity.ok(response);
+    private ResponseEntity<BoardResponse> getInquiryDetail(@RequestHeader("Authorization") String token,
+                                                           @PathVariable Long inquiryId) {
+        try {
+            String userId = jwtUtil.validateAndExtractUserId(token);
+            BoardResponse response = boardService.getInquiryDetail(userId, inquiryId);
+            return ResponseEntity.ok(response);
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // 작성
     @PostMapping("/create")
     public ResponseEntity<BoardResponse> createBoard(@RequestPart("request") String request,
+                                                     @RequestHeader("Authorization") String token,
                                                      @RequestPart(value = "imageFile", required = false) MultipartFile file)
             throws IOException {
 
@@ -105,6 +122,7 @@ public class BoardController {
         log.info("BoardRequest: {}", request);
         log.info("MultipartFile: {}", file);
         try {
+            jwtUtil.validateToken(token);
             BoardRequest boardRequest = objectMapper.readValue(request, BoardRequest.class); // BoardRequest 객체로 변환
             log.info("BoardRequest Object: {}", boardRequest); // 요청 내용 로깅
 
@@ -112,6 +130,8 @@ public class BoardController {
 
             return ResponseEntity.ok(response);
 
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         } catch (MaxUploadSizeExceededException e) { // 파일 크기 초과 예외 처리
             log.error("파일 크기 초과 오류: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(new BoardResponse("파일 크기가 너무 큽니다."));
@@ -141,9 +161,11 @@ public class BoardController {
     // requestBody : 본문에 있는 json 데이터 BoardRequest 객체로 매핑
     @PutMapping("/modify/{inquiryId}")
     public ResponseEntity<BoardResponse> updateBoard(@PathVariable("inquiryId") Long inquiryId,
+                                                     @RequestHeader("Authorization") String token,
                                                      @RequestPart("request") String request,
                                                      @RequestPart(value = "imagefile", required = false) MultipartFile file) {
         try {
+            jwtUtil.validateToken(token);
             log.info("Raw request: {}", request);
             BoardRequest boardRequest = objectMapper.readValue(request, BoardRequest.class);
 
@@ -152,6 +174,8 @@ public class BoardController {
             BoardResponse response = boardService.updatePost(boardRequest, file);
             return ResponseEntity.ok(response);
 
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         } catch (IllegalArgumentException e) {
             log.error("JSON 파싱 실패: {}", e.getMessage());
             return ResponseEntity.badRequest().body(null);
@@ -163,23 +187,49 @@ public class BoardController {
 
     // 공지글 삭제
     @DeleteMapping("/notice/delete")
-    public ResponseEntity<BoardResponse> deleteBoard(@RequestBody BoardRequest request) {
-        BoardResponse response = boardService.deleteNotice(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<BoardResponse> deleteBoard(
+            @RequestHeader("Authorization") String token,
+            @RequestBody BoardRequest request) {
+        try {
+            jwtUtil.validateToken(token);
+            BoardResponse response = boardService.deleteNotice(request);
+            return ResponseEntity.ok(response);
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // 문의 게시글 삭제
     @DeleteMapping("/inquiry/delete")
-    public ResponseEntity<BoardResponse> deleteInquiry(@RequestBody BoardRequest request) {
-        log.info("Delete Inquiry 요청 데이터: userId={}, inquiryId={}", request.getUserId(), request.getInquiryId());
-        BoardResponse response = boardService.deleteInquiry(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<BoardResponse> deleteInquiry(
+            @RequestHeader("Authorization") String token,
+            @RequestBody BoardRequest request) {
+        try {
+            jwtUtil.validateToken(token);
+            log.info("Delete Inquiry 요청 데이터: userId={}, inquiryId={}", request.getUserId(), request.getInquiryId());
+            BoardResponse response = boardService.deleteInquiry(request);
+            return ResponseEntity.ok(response);
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     //파일 삭제
     @DeleteMapping("/{fileId}")
-    public ResponseEntity<String> deleteFile(@PathVariable Long fileId) {
-        uploadFileService.deleteUploadedFile(fileId);
-        return ResponseEntity.ok("삭제완료");
+    public ResponseEntity<String> deleteFile(@PathVariable Long fileId,
+                                             @RequestHeader("Authorization") String token) {
+        try {
+            jwtUtil.validateToken(token);
+            uploadFileService.deleteUploadedFile(fileId);
+            return ResponseEntity.ok("삭제완료");
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }
