@@ -26,7 +26,8 @@ public class FastApiClient {
     public MessageResponse sendMessageToFastApi(Long sessionId) {
         try {
             // String url = "http://localhost:8000/api/process";
-            String url = "https://insideout-ai-production.up.railway.app/api/process";
+            // String url = "https://insideout-ai-production.up.railway.app/api/process";
+            String url = "https://insideout-ai.azurewebsites.net/api/process";
             Map<String, Long> request = Map.of("sessionId", sessionId);
 
             // FastAPI로부터 응답 받기
@@ -48,7 +49,9 @@ public class FastApiClient {
      */
     public SessionSummaryResponse getSessionSummary(Long sessionId) {
 //        String url = "http://localhost:8000/api/session/summary";
-        String url = "https://insideout-ai-production.up.railway.app/api/session/summary";
+        // String url = "https://insideout-ai-production.up.railway.app/api/session/summary";
+        String url = "https://insideout-ai.azurewebsites.net/api/session/summary";
+
 
         Map<String, Long> requestBody = new HashMap<>();
         requestBody.put("sessionId", sessionId);
@@ -61,8 +64,9 @@ public class FastApiClient {
      * 부서원들의 세션 아이디들 전달 > 부서의 개선 사항 반환
      */
     public String getImprovements(List<Long> sessionIds) {
-//        String url = "http://localhost:8000/api/department/improvements";
-        String url = "https://insideout-ai-production.up.railway.app/api/department/improvements";
+        // String url = "http://localhost:8000/api/department/improvements";
+        // String url = "https://insideout-ai-production.up.railway.app/api/department/improvements";
+        String url = "https://insideout-ai.azurewebsites.net/api/department/improvements";
         Map<String, List<Long>> request = Map.of("sessionIds", sessionIds);
         ImprovementsResponse improvements = restTemplate.postForObject(url, request, ImprovementsResponse.class);
 
