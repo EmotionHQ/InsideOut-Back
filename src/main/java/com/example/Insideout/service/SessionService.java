@@ -218,7 +218,7 @@ public class SessionService {
      * 세션의 요약, 개선 사항, 상태 반환
      */
     public List<SessionSummaryResponse> getSessionDetails(String userId) {
-        List<Session> mySessions = sessionRepository.findAllByUserIdOrderByCreatedAtAsc(userId);
+        List<Session> mySessions = sessionRepository.findAllByUserIdAndIsClosedTrueOrderByCreatedAtAsc(userId);
 
         return mySessions.stream()
                 .map(session -> new SessionSummaryResponse(

@@ -23,6 +23,8 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
 
     List<Session> findAllByUserIdOrderByCreatedAtAsc(String userId);
 
+    List<Session> findAllByUserIdAndIsClosedTrueOrderByCreatedAtAsc(String userId);
+
     List<Session> findAllByUserIdIn(List<String> userIds);
 
     List<Session> findAllByIsClosedTrueOrderByCreatedAtAsc();
