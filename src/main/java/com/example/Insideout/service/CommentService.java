@@ -9,6 +9,7 @@ import com.example.Insideout.repository.BoardRepository;
 import com.example.Insideout.repository.CommentRepository;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -98,7 +99,7 @@ public class CommentService {
 
         // 댓글 내용 수정
         comment.setContent(updatedContent);
-        comment.setModifiedTime(LocalDateTime.now()); // 수정 시간
+        comment.setModifiedTime(LocalDateTime.now(ZoneId.of("Asia/Seoul"))); // 수정 시간
 
         // 수정 댓글 저장
         commentRepository.save(comment);

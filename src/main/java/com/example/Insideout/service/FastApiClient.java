@@ -4,6 +4,7 @@ import com.example.Insideout.dto.ImprovementsResponse;
 import com.example.Insideout.dto.MessageResponse;
 import com.example.Insideout.dto.SessionSummaryResponse;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class FastApiClient {
 
             // 현재 시간으로 생성 시간 설정
             if (response != null && response.getCreatedAt() == null) {
-                response.setCreatedAt(LocalDateTime.now());
+                response.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
             }
 
             return response;

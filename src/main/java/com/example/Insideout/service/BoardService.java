@@ -13,6 +13,7 @@ import com.example.Insideout.repository.CommentRepository;
 import com.example.Insideout.repository.UploadFileRepository;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -210,7 +211,7 @@ public class BoardService {
         board.setUserId(request.getUserId());
         board.setTitle(request.getTitle());
         board.setContent(request.getContent());
-        board.setCreatedTime(LocalDateTime.now());
+        board.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
         board.setModifiedTime(null);
 
         Board saveBoard = boardRepository.save(board);
@@ -254,7 +255,7 @@ public class BoardService {
 
         board.setTitle(request.getTitle());
         board.setContent(request.getContent());
-        board.setModifiedTime(LocalDateTime.now());
+        board.setModifiedTime(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
 
         boardRepository.save(board);
 

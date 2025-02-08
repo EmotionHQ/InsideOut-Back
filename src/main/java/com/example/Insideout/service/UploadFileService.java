@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -108,7 +109,7 @@ public class UploadFileService {
             uploadFile.setOriginalName(originalFileName);
             uploadFile.setSaveName(uniqueFileName);
             uploadFile.setFilePath(saveUrl);
-            uploadFile.setUploadAt(LocalDateTime.now());
+            uploadFile.setUploadAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
 
             uploadFileRepository.save(uploadFile);
             log.info("File metadata saved to database: {}", uploadFile);

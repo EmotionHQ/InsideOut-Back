@@ -16,6 +16,7 @@ import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.WeekFields;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,7 +25,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -261,7 +261,7 @@ public class DepartmentService {
         if (user.getRole() != Role.MANAGER) {
             throw new IllegalArgumentException("해당 유저는 부서장이 아닙니다.");
         }
-        
+
         String deptCode = userRepository.findByUserId(userId)
                 .map(User::getDeptCode)
                 .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다"));
@@ -271,7 +271,8 @@ public class DepartmentService {
                 .stream().map(User::getUserId).toList();
 
         // 최근 30일 동안 생성된 세션 조회
-        List<Long> sessionIds = sessionRepository.findSessions(userIds, LocalDateTime.now().minusDays(30));
+        List<Long> sessionIds = sessionRepository.findSessions(userIds,
+                LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(30));
 
         if (sessionIds.isEmpty()) {
             return "부서의 상담 세션이 존재하지 않습니다";

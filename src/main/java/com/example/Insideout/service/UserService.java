@@ -11,6 +11,7 @@ import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -66,7 +67,7 @@ public class UserService implements UserDetailsService {
             user.setDeptCode(null);
         }
 
-        user.setCreatedAt(LocalDateTime.now());
+        user.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
 
         return userRepository.save(user);
     }

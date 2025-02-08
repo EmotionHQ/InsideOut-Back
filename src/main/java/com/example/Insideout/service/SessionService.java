@@ -19,6 +19,7 @@ import com.example.Insideout.repository.SessionRepository;
 import com.example.Insideout.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -157,7 +158,8 @@ public class SessionService {
         userMessage.setContent(messageRequest.getContent());
         userMessage.setAuthorType(Message.AuthorType.USER);
         userMessage.setCreatedAt(
-                messageRequest.getCreatedAt() != null ? messageRequest.getCreatedAt() : LocalDateTime.now()
+                messageRequest.getCreatedAt() != null ? messageRequest.getCreatedAt()
+                        : LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         );
         userMessage.setImageUrl(messageRequest.getImageUrl());
         messageRepository.save(userMessage);
@@ -186,7 +188,7 @@ public class SessionService {
         if (jwtUser.getRole() == Role.USER) {
             throw new IllegalArgumentException("해당 유저는 관리자가 아닙니다.");
         }
-        
+
         List<Session> acceptedSessions = sessionRepository.findByUserIdAndAgreement(userId, AgreementType.ACCEPTED);
 
         return acceptedSessions.stream()
