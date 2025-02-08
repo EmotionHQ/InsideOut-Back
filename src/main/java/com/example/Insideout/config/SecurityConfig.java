@@ -74,7 +74,8 @@ public class SecurityConfig {
                 "https://insideout-ai-production.up.railway.app",
                 "https://insideout-front-production.up.railway.app",
                 "https://insideout-front.azurewebsites.net",
-                "https://emotionhq.com"
+                "https://emotionhq.com",
+                "https://insideout-ai.azurewebsites.net"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
