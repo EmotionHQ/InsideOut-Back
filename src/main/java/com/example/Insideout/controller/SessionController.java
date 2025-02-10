@@ -72,10 +72,11 @@ public class SessionController {
             summary = "유저의 세션 조회",
             description = "상담창 세션 조회, 관리자가 유저 세션 조회"
     )
-    @GetMapping("/sessions")
-    public ResponseEntity<List<SessionInfo>> getUserSessions(@RequestHeader("Authorization") String token) {
+    @GetMapping("/sessions/{userId}")
+    public ResponseEntity<List<SessionInfo>> getUserSessions(@RequestHeader("Authorization") String token,
+                                                             @PathVariable String userId) {
         try {
-            String userId = jwtUtil.validateAndExtractUserId(token);
+            jwtUtil.validateToken(token);
             return ResponseEntity.ok(sessionService.getSessionsByUserId(userId));
         } catch (JwtException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
