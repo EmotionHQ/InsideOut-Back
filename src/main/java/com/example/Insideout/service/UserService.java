@@ -134,7 +134,7 @@ public class UserService implements UserDetailsService {
             throw new SecurityException("권한이 없습니다. 사용자를 삭제하려면 ADMIN 권한이 필요합니다.");
         }
 
-        User user = userRepository.findByUserId(jwtUserId)
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다: " + userId));
 
         if (!user.getRole().equals(Role.USER)) {
